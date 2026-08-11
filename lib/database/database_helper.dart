@@ -1,3 +1,4 @@
+// database/database_helper.dart
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -27,7 +28,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
@@ -41,7 +42,12 @@ class DatabaseHelper {
       int oldVersion,
       int newVersion,
       ) async {
-    // Future database upgrades go here.
+    if (oldVersion < 3) {
+      // Add userId column to tables if upgrading from older versions
+      await db.execute("ALTER TABLE products ADD COLUMN userId INTEGER DEFAULT 0");
+      await db.execute("ALTER TABLE clients ADD COLUMN userId INTEGER DEFAULT 0");
+      await db.execute("ALTER TABLE orders ADD COLUMN userId INTEGER DEFAULT 0");
+    }
   }
 
   Future<void> _createDB(Database db, int version) async {
@@ -61,6 +67,7 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE products(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId INTEGER,
         productId TEXT UNIQUE,
         name TEXT,
         description TEXT,
@@ -76,11 +83,14 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE clients(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        clientCode TEXT UNIQUE,
+        userId INTEGER,
+        clientId TEXT UNIQUE,
         name TEXT,
         phone TEXT,
         address TEXT,
-        createdDate TEXT
+        balance REAL,
+        notes TEXT,
+        createdAt TEXT
       )
     ''');
 
@@ -89,6 +99,7 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE orders(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId INTEGER,
         orderNo TEXT UNIQUE,
         clientId INTEGER,
         orderDate TEXT,
@@ -115,6 +126,7 @@ class DatabaseHelper {
         quantityPerBox INTEGER,
         sellingPrice REAL,
         totalPrice REAL,
+        discount REAL,
 
         FOREIGN KEY(orderId)
         REFERENCES orders(id)
@@ -175,11 +187,13 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Product>> getProducts() async {
+  Future<List<Product>> getProducts(int userId) async {
     final db = await database;
 
     final result = await db.query(
       "products",
+      where: "userId=?",
+      whereArgs: [userId],
       orderBy: "name ASC",
     );
 
@@ -221,11 +235,11 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> getProductCount() async {
+  Future<int> getProductCount(int userId) async {
     final db = await database;
 
     final result =
-    await db.rawQuery("SELECT COUNT(*) FROM products");
+    await db.rawQuery("SELECT COUNT(*) FROM products WHERE userId=?", [userId]);
 
     return Sqflite.firstIntValue(result) ?? 0;
   }
@@ -242,11 +256,13 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Client>> getClients() async {
+  Future<List<Client>> getClients(int userId) async {
     final db = await database;
 
     final result = await db.query(
       "clients",
+      where: "userId=?",
+      whereArgs: [userId],
       orderBy: "name ASC",
     );
 
@@ -288,11 +304,11 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> getClientCount() async {
+  Future<int> getClientCount(int userId) async {
     final db = await database;
 
     final result =
-    await db.rawQuery("SELECT COUNT(*) FROM clients");
+    await db.rawQuery("SELECT COUNT(*) FROM clients WHERE userId=?", [userId]);
 
     return Sqflite.firstIntValue(result) ?? 0;
   }
@@ -308,11 +324,13 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Order>> getOrders() async {
+  Future<List<Order>> getOrders(int userId) async {
     final db = await database;
 
     final result = await db.query(
       "orders",
+      where: "userId=?",
+      whereArgs: [userId],
       orderBy: "orderDate DESC",
     );
 
@@ -367,52 +385,52 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> getOrderCount() async {
+  Future<int> getOrderCount(int userId) async {
     final db = await database;
 
     final result =
-    await db.rawQuery("SELECT COUNT(*) FROM orders");
+    await db.rawQuery("SELECT COUNT(*) FROM orders WHERE userId=?", [userId]);
 
     return Sqflite.firstIntValue(result) ?? 0;
   }
 
-  Future<double> getTotalSales() async {
+  Future<double> getTotalSales(int userId) async {
     final db = await database;
 
     final result = await db.rawQuery(
-      "SELECT SUM(grandTotal) FROM orders",
+      "SELECT SUM(grandTotal) FROM orders WHERE userId=?", [userId]
     );
 
     if (result.first.values.first == null) {
-      return 0;
+      return 0.0;
     }
 
     return (result.first.values.first as num).toDouble();
   }
 
-  Future<double> getTotalRemaining() async {
+  Future<double> getTotalRemaining(int userId) async {
     final db = await database;
 
     final result = await db.rawQuery(
-      "SELECT SUM(remainingAmount) FROM orders",
+      "SELECT SUM(remainingAmount) FROM orders WHERE userId=?", [userId]
     );
 
     if (result.first.values.first == null) {
-      return 0;
+      return 0.0;
     }
 
     return (result.first.values.first as num).toDouble();
   }
 
-  Future<double> getTotalReceived() async {
+  Future<double> getTotalReceived(int userId) async {
     final db = await database;
 
     final result = await db.rawQuery(
-      "SELECT SUM(paidAmount) FROM orders",
+      "SELECT SUM(paidAmount) FROM orders WHERE userId=?", [userId]
     );
 
     if (result.first.values.first == null) {
-      return 0;
+      return 0.0;
     }
 
     return (result.first.values.first as num).toDouble();
@@ -493,7 +511,21 @@ class DatabaseHelper {
           "order_items",
           item.copyWith(orderId: orderId).toMap(),
         );
+
+        // Deduct inventory
+        await txn.rawUpdate('''
+          UPDATE products 
+          SET boxes = boxes - ? 
+          WHERE id = ?
+        ''', [item.boxes, item.productId]);
       }
+
+      // Update client balance
+      await txn.rawUpdate('''
+        UPDATE clients 
+        SET balance = balance + ? 
+        WHERE id = ?
+      ''', [order.remainingAmount, order.clientId]);
     });
   }
 
@@ -516,7 +548,7 @@ class DatabaseHelper {
     ''', [orderId]);
   }
 
-  Future<List<Map<String, dynamic>>> getAllOrdersWithClients() async {
+  Future<List<Map<String, dynamic>>> getAllOrdersWithClients(int userId) async {
     final db = await database;
 
     return await db.rawQuery('''
@@ -527,8 +559,9 @@ class DatabaseHelper {
       FROM orders o
       INNER JOIN clients c
       ON o.clientId = c.id
+      WHERE o.userId = ?
       ORDER BY o.orderDate DESC
-    ''');
+    ''', [userId]);
   }
 
   Future<List<Map<String, dynamic>>> getClientLedger(
@@ -542,5 +575,62 @@ class DatabaseHelper {
       WHERE clientId = ?
       ORDER BY orderDate DESC
     ''', [clientId]);
+  }
+
+  //======================== NEW REPORT METHODS ========================//
+
+  Future<double> getTotalClientBalance(int userId) async {
+    final db = await database;
+    final result = await db.rawQuery("SELECT SUM(balance) FROM clients WHERE userId=?", [userId]);
+    if (result.first.values.first == null) return 0.0;
+    return (result.first.values.first as num).toDouble();
+  }
+
+  Future<double> getTotalInventoryValue(int userId) async {
+    final db = await database;
+    final result = await db.rawQuery("SELECT SUM(boxes * quantityPerBox * purchasePrice) FROM products WHERE userId=?", [userId]);
+    if (result.first.values.first == null) return 0.0;
+    return (result.first.values.first as num).toDouble();
+  }
+
+  Future<double> getTotalProfit(int userId) async {
+    final db = await database;
+    final result = await db.rawQuery('''
+      SELECT SUM(oi.totalPrice - (oi.boxes * oi.quantityPerBox * p.purchasePrice)) 
+      FROM order_items oi 
+      INNER JOIN products p ON oi.productId = p.id
+      WHERE p.userId = ?
+    ''', [userId]);
+    if (result.first.values.first == null) return 0.0;
+    return (result.first.values.first as num).toDouble();
+  }
+
+  Future<double> getSpendingByDate(int userId, String startDate, String endDate) async {
+    final db = await database;
+    final result = await db.rawQuery('''
+      SELECT SUM(boxes * quantityPerBox * purchasePrice) 
+      FROM products 
+      WHERE userId = ? AND arrivalDate >= ? AND arrivalDate <= ?
+    ''', [userId, startDate, endDate]);
+    if (result.first.values.first == null) return 0.0;
+    return (result.first.values.first as num).toDouble();
+  }
+
+  Future<double> getSalesByDate(int userId, String startDate, String endDate) async {
+    final db = await database;
+    final result = await db.rawQuery('''
+      SELECT SUM(grandTotal) 
+      FROM orders 
+      WHERE userId = ? AND orderDate >= ? AND orderDate <= ?
+    ''', [userId, startDate, endDate]);
+    if (result.first.values.first == null) return 0.0;
+    return (result.first.values.first as num).toDouble();
+  }
+
+  Future<int> getTotalBoxes(int userId) async {
+    final db = await database;
+    final result = await db.rawQuery("SELECT SUM(boxes) FROM products WHERE userId=?", [userId]);
+    if (result.first.values.first == null) return 0;
+    return Sqflite.firstIntValue(result) ?? 0;
   }
 }

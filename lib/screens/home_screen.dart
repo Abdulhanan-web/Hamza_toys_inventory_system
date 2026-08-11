@@ -1,17 +1,20 @@
 // lib/screens/home_screen.dart
-
 import 'package:flutter/material.dart';
-
 import '../database/database_helper.dart';
 import '../models/product.dart';
 import 'login_screen.dart';
 import 'product_form_screen.dart';
+import 'client_list_screen.dart';
+import 'order_form_screen.dart';
+import 'reports_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  final int userId;
   final String username;
 
   const HomeScreen({
     super.key,
+    required this.userId,
     required this.username,
   });
 
@@ -30,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> loadProducts() async {
-    final list = await DatabaseHelper.instance.getProducts();
+    final list = await DatabaseHelper.instance.getProducts(widget.userId);
 
     setState(() {
       products = list;
@@ -190,6 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => ProductFormScreen(
+                            userId: widget.userId,
                             product: product,
                           ),
                         ),
@@ -267,7 +271,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   sidebarButton(
                     icon: Icons.dashboard,
                     title: "Dashboard",
-                    onTap: () {},
+                    onTap: () {
+                      loadProducts();
+                    },
                   ),
 
                   sidebarButton(
@@ -277,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const ProductFormScreen(),
+                          builder: (_) => ProductFormScreen(userId: widget.userId),
                         ),
                       );
 
@@ -287,41 +293,43 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   sidebarButton(
                     icon: Icons.people,
-                    title: "Customers",
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            "Customers module coming soon.",
-                          ),
+                    title: "Clients",
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ClientListScreen(userId: widget.userId),
                         ),
                       );
+
+                      if (mounted) {
+                        loadProducts(); 
+                      }
                     },
                   ),
 
                   sidebarButton(
                     icon: Icons.shopping_cart,
-                    title: "Sales",
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            "Sales module coming soon.",
-                          ),
+                    title: "Add Order",
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => OrderFormScreen(userId: widget.userId),
                         ),
                       );
+                      loadProducts();
                     },
                   ),
 
                   sidebarButton(
                     icon: Icons.bar_chart,
                     title: "Reports",
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            "Reports module coming soon.",
-                          ),
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ReportsScreen(userId: widget.userId),
                         ),
                       );
                     },

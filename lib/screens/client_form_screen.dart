@@ -1,98 +1,99 @@
-// lib/screens/product_form_screen.dart
+// lib/screens/client_form_screen.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../database/database_helper.dart';
-import '../models/product.dart';
+import '../models/client.dart';
 
-class ProductFormScreen extends StatefulWidget {
+class ClientFormScreen extends StatefulWidget {
   final int userId;
-  final Product? product;
+  final Client? client;
 
-  const ProductFormScreen({
+  const ClientFormScreen({
     super.key,
     required this.userId,
-    this.product,
+    this.client,
   });
 
   @override
-  State<ProductFormScreen> createState() => _ProductFormScreenState();
+  State<ClientFormScreen> createState() => _ClientFormScreenState();
 }
 
-class _ProductFormScreenState extends State<ProductFormScreen> {
+class _ClientFormScreenState extends State<ClientFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  late final TextEditingController _productIdController;
+  late final TextEditingController _clientIdController;
   late final TextEditingController _nameController;
-  late final TextEditingController _descriptionController;
-  late final TextEditingController _boxesController;
-  late final TextEditingController _quantityPerBoxController;
-  late final TextEditingController _purchasePriceController;
-  late final TextEditingController _arrivalDateController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _addressController;
+  late final TextEditingController _balanceController;
+  late final TextEditingController _notesController;
+  late final TextEditingController _createdAtController;
 
   bool _isLoading = false;
 
-  bool get isEdit => widget.product != null;
+  bool get isEdit => widget.client != null;
 
   @override
   void initState() {
     super.initState();
 
-    _productIdController = TextEditingController(
-      text: widget.product?.productId ?? "",
+    _clientIdController = TextEditingController(
+      text: widget.client?.clientId ?? "",
     );
 
     _nameController = TextEditingController(
-      text: widget.product?.name ?? "",
+      text: widget.client?.name ?? "",
     );
 
-    _descriptionController = TextEditingController(
-      text: widget.product?.description ?? "",
+    _phoneController = TextEditingController(
+      text: widget.client?.phone ?? "",
     );
 
-    _boxesController = TextEditingController(
-      text: widget.product?.boxes.toString() ?? "",
+    _addressController = TextEditingController(
+      text: widget.client?.address ?? "",
     );
 
-    _quantityPerBoxController = TextEditingController(
-      text: widget.product?.quantityPerBox.toString() ?? "",
+    _balanceController = TextEditingController(
+      text: widget.client?.balance.toString() ?? "0",
     );
 
-    _purchasePriceController = TextEditingController(
-      text: widget.product?.purchasePrice.toString() ?? "",
+    _notesController = TextEditingController(
+      text: widget.client?.notes ?? "",
     );
 
-    _arrivalDateController = TextEditingController(
-      text: widget.product?.arrivalDate ??
-          DateFormat('yyyy-MM-dd').format(DateTime.now()),
+    _createdAtController = TextEditingController(
+      text: widget.client?.createdAt ??
+          DateFormat("yyyy-MM-dd").format(DateTime.now()),
     );
   }
 
   @override
   void dispose() {
-    _productIdController.dispose();
+    _clientIdController.dispose();
     _nameController.dispose();
-    _descriptionController.dispose();
-    _boxesController.dispose();
-    _quantityPerBoxController.dispose();
-    _purchasePriceController.dispose();
-    _arrivalDateController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _balanceController.dispose();
+    _notesController.dispose();
+    _createdAtController.dispose();
 
     super.dispose();
   }
-  Future<void> _pickArrivalDate() async {
-    final DateTime initialDate =
-        DateTime.tryParse(_arrivalDateController.text) ?? DateTime.now();
 
-    final DateTime? pickedDate = await showDatePicker(
+  Future<void> _pickDate() async {
+    final initialDate =
+        DateTime.tryParse(_createdAtController.text) ?? DateTime.now();
+
+    final picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
     );
 
-    if (pickedDate != null) {
-      _arrivalDateController.text =
-          DateFormat('yyyy-MM-dd').format(pickedDate);
+    if (picked != null) {
+      _createdAtController.text =
+          DateFormat("yyyy-MM-dd").format(picked);
     }
   }
 
@@ -117,20 +118,32 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           if (value == null || value.trim().isEmpty) {
             return "$label is required";
           }
+
+          if (label == "Phone Number") {
+            if (value.length < 11) {
+              return "Enter valid phone number";
+            }
+          }
+
+          if (label == "Balance") {
+            if (double.tryParse(value) == null) {
+              return "Enter valid balance";
+            }
+          }
+
           return null;
         },
         decoration: InputDecoration(
           labelText: label,
-          suffixIcon: suffixIcon,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          suffixIcon: suffixIcon,
         ),
       ),
     );
   }
-
-  Future<void> _saveProduct() async {
+  Future<void> _saveClient() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -138,22 +151,22 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     });
 
     try {
-      final product = Product(
-        id: widget.product?.id,
+      final client = Client(
+        id: widget.client?.id,
         userId: widget.userId,
-        productId: _productIdController.text.trim(),
+        clientId: _clientIdController.text.trim(),
         name: _nameController.text.trim(),
-        description: _descriptionController.text.trim(),
-        boxes: int.parse(_boxesController.text),
-        quantityPerBox: int.parse(_quantityPerBoxController.text),
-        purchasePrice: double.parse(_purchasePriceController.text),
-        arrivalDate: _arrivalDateController.text,
+        phone: _phoneController.text.trim(),
+        address: _addressController.text.trim(),
+        balance: double.parse(_balanceController.text),
+        notes: _notesController.text.trim(),
+        createdAt: _createdAtController.text,
       );
 
       if (isEdit) {
-        await DatabaseHelper.instance.updateProduct(product);
+        await DatabaseHelper.instance.updateClient(client);
       } else {
-        await DatabaseHelper.instance.insertProduct(product);
+        await DatabaseHelper.instance.insertClient(client);
       }
 
       if (!mounted) return;
@@ -163,19 +176,19 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           backgroundColor: Colors.green,
           content: Text(
             isEdit
-                ? "Product updated successfully."
-                : "Product added successfully.",
+                ? "Client updated successfully."
+                : "Client added successfully.",
           ),
         ),
       );
 
       Navigator.pop(context, true);
     } catch (e, stackTrace) {
-      print("========== PRODUCT ERROR ==========");
-      print(e);
+      debugPrint("========== CLIENT ERROR ==========");
+      debugPrint(e.toString());
 
-      print("========== STACK TRACE ==========");
-      print(stackTrace);
+      debugPrint("========== STACK TRACE ==========");
+      debugPrint(stackTrace.toString());
 
       if (!mounted) return;
 
@@ -198,7 +211,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          isEdit ? "Edit Product" : "Add Product",
+          isEdit ? "Edit Client" : "Add Client",
         ),
         centerTitle: true,
       ),
@@ -217,10 +230,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 child: Form(
                   key: _formKey,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment:
+                    CrossAxisAlignment.stretch,
                     children: [
                       Icon(
-                        isEdit ? Icons.edit : Icons.inventory_2,
+                        isEdit
+                            ? Icons.person
+                            : Icons.person_add,
                         color: Colors.blue,
                         size: 70,
                       ),
@@ -228,7 +244,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       const SizedBox(height: 15),
 
                       Text(
-                        isEdit ? "Edit Product" : "Add New Product",
+                        isEdit
+                            ? "Edit Client"
+                            : "Add New Client",
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 28,
@@ -239,49 +257,52 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       const SizedBox(height: 35),
 
                       buildField(
-                        label: "Product ID",
-                        controller: _productIdController,
+                        label: "Client ID",
+                        controller: _clientIdController,
                       ),
 
                       buildField(
-                        label: "Product Name",
+                        label: "Client Name",
                         controller: _nameController,
                       ),
 
                       buildField(
-                        label: "Description",
-                        controller: _descriptionController,
+                        label: "Phone Number",
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                      ),
+
+                      buildField(
+                        label: "Address",
+                        controller: _addressController,
                         maxLines: 3,
                       ),
 
                       buildField(
-                        label: "Number of Boxes",
-                        controller: _boxesController,
-                        keyboardType: TextInputType.number,
-                      ),
-
-                      buildField(
-                        label: "Quantity Per Box",
-                        controller: _quantityPerBoxController,
-                        keyboardType: TextInputType.number,
-                      ),
-
-                      buildField(
-                        label: "Purchase Price",
-                        controller: _purchasePriceController,
-                        keyboardType: const TextInputType.numberWithOptions(
+                        label: "Balance",
+                        controller: _balanceController,
+                        keyboardType:
+                        const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
                       ),
 
                       buildField(
-                        label: "Arrival Date",
-                        controller: _arrivalDateController,
+                        label: "Notes",
+                        controller: _notesController,
+                        maxLines: 4,
+                      ),
+
+                      buildField(
+                        label: "Created Date",
+                        controller: _createdAtController,
                         readOnly: true,
-                        onTap: _pickArrivalDate,
+                        onTap: _pickDate,
                         suffixIcon: IconButton(
-                          icon: const Icon(Icons.calendar_month),
-                          onPressed: _pickArrivalDate,
+                          icon: const Icon(
+                            Icons.calendar_month,
+                          ),
+                          onPressed: _pickDate,
                         ),
                       ),
 
@@ -290,25 +311,29 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       SizedBox(
                         height: 55,
                         child: ElevatedButton.icon(
-                          onPressed: _isLoading ? null : _saveProduct,
+                          onPressed:
+                          _isLoading ? null : _saveClient,
                           icon: _isLoading
                               ? const SizedBox(
                             width: 22,
                             height: 22,
-                            child: CircularProgressIndicator(
+                            child:
+                            CircularProgressIndicator(
                               strokeWidth: 2,
                               color: Colors.white,
                             ),
                           )
                               : Icon(
-                            isEdit ? Icons.save : Icons.add,
+                            isEdit
+                                ? Icons.save
+                                : Icons.person_add,
                           ),
                           label: Text(
                             _isLoading
                                 ? "Please wait..."
                                 : (isEdit
-                                ? "Update Product"
-                                : "Add Product"),
+                                ? "Update Client"
+                                : "Add Client"),
                             style: const TextStyle(
                               fontSize: 18,
                             ),
@@ -322,7 +347,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                         SizedBox(
                           height: 50,
                           child: OutlinedButton.icon(
-                            onPressed: () => Navigator.pop(context),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
                             icon: const Icon(Icons.close),
                             label: const Text("Cancel"),
                           ),

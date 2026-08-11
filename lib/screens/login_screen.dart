@@ -1,6 +1,5 @@
 // lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
-
 import '../database/database_helper.dart';
 import '../utils/password_helper.dart';
 import 'home_screen.dart';
@@ -64,6 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
           context,
           MaterialPageRoute(
             builder: (_) => HomeScreen(
+              userId: user.id!,
               username: user.username,
             ),
           ),

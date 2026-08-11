@@ -1,5 +1,7 @@
+// models/order.dart
 class Order {
   final int? id;
+  final int userId;
   final String orderNo;
   final int clientId;
   final String orderDate;
@@ -11,6 +13,7 @@ class Order {
 
   Order({
     this.id,
+    required this.userId,
     required this.orderNo,
     required this.clientId,
     required this.orderDate,
@@ -24,6 +27,7 @@ class Order {
   Map<String, dynamic> toMap() {
     return {
       "id": id,
+      "userId": userId,
       "orderNo": orderNo,
       "clientId": clientId,
       "orderDate": orderDate,
@@ -38,6 +42,7 @@ class Order {
   factory Order.fromMap(Map<String, dynamic> map) {
     return Order(
       id: map["id"],
+      userId: map["userId"] ?? 0,
       orderNo: map["orderNo"],
       clientId: map["clientId"],
       orderDate: map["orderDate"],
@@ -51,6 +56,7 @@ class Order {
 
   Order copyWith({
     int? id,
+    int? userId,
     String? orderNo,
     int? clientId,
     String? orderDate,
@@ -62,6 +68,7 @@ class Order {
   }) {
     return Order(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       orderNo: orderNo ?? this.orderNo,
       clientId: clientId ?? this.clientId,
       orderDate: orderDate ?? this.orderDate,

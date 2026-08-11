@@ -1,6 +1,5 @@
 // lib/screens/signup_screen.dart
 import 'package:flutter/material.dart';
-
 import '../database/database_helper.dart';
 import '../models/user.dart';
 import '../utils/password_helper.dart';

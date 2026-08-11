@@ -1,3 +1,4 @@
+// models/order_item.dart
 class OrderItem {
   final int? id;
   final int orderId;
@@ -10,6 +11,7 @@ class OrderItem {
 
   // Calculated total for this item
   final double totalPrice;
+  final double discount;
 
   OrderItem({
     this.id,
@@ -19,6 +21,7 @@ class OrderItem {
     required this.quantityPerBox,
     required this.sellingPrice,
     required this.totalPrice,
+    required this.discount,
   });
 
   Map<String, dynamic> toMap() {
@@ -30,6 +33,7 @@ class OrderItem {
       "quantityPerBox": quantityPerBox,
       "sellingPrice": sellingPrice,
       "totalPrice": totalPrice,
+      "discount": discount,
     };
   }
 
@@ -42,6 +46,7 @@ class OrderItem {
       quantityPerBox: map["quantityPerBox"],
       sellingPrice: (map["sellingPrice"] as num).toDouble(),
       totalPrice: (map["totalPrice"] as num).toDouble(),
+      discount: (map["discount"] as num).toDouble(),
     );
   }
 
@@ -53,6 +58,7 @@ class OrderItem {
     int? quantityPerBox,
     double? sellingPrice,
     double? totalPrice,
+    double? discount,
   }) {
     return OrderItem(
       id: id ?? this.id,
@@ -62,6 +68,7 @@ class OrderItem {
       quantityPerBox: quantityPerBox ?? this.quantityPerBox,
       sellingPrice: sellingPrice ?? this.sellingPrice,
       totalPrice: totalPrice ?? this.totalPrice,
+      discount: discount ?? this.discount,
     );
   }
 }
