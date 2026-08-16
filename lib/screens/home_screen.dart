@@ -6,7 +6,9 @@ import 'login_screen.dart';
 import 'product_form_screen.dart';
 import 'client_list_screen.dart';
 import 'order_form_screen.dart';
+import 'order_list_screen.dart';
 import 'reports_screen.dart';
+import 'add_stock_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final int userId;
@@ -145,11 +147,11 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const Icon(Icons.inventory_2,size:18),
                 const SizedBox(width:8),
-                Text("Boxes : ${product.boxes}")
+                Text("Stock : ${product.fullBoxes} Boxes, ${product.loosePieces} Pieces")
               ],
             ),
 
-            const SizedBox(height:6),
+            const SizedBox(height: 6),
 
             Row(
               children: [
@@ -159,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
 
-            const SizedBox(height:6),
+            const SizedBox(height: 6),
 
             Row(
               children: [
@@ -179,10 +181,34 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
 
-            const SizedBox(height:20),
+            const SizedBox(height: 20),
 
             Row(
               children: [
+
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
+                    icon: const Icon(Icons.add_shopping_cart),
+                    label: const Text("Add Stock"),
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AddStockScreen(product: product),
+                        ),
+                      );
+                      if (result == true) {
+                        loadProducts();
+                      }
+                    },
+                  ),
+                ),
+
+                const SizedBox(width: 10),
 
                 Expanded(
                   child: ElevatedButton.icon(
@@ -204,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                const SizedBox(width: 15),
+                const SizedBox(width: 10),
 
                 Expanded(
                   child: ElevatedButton.icon(
@@ -319,6 +345,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       );
                       loadProducts();
+                    },
+                  ),
+
+                  sidebarButton(
+                    icon: Icons.list_alt,
+                    title: "View Orders",
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => OrderListScreen(userId: widget.userId),
+                        ),
+                      );
                     },
                   ),
 

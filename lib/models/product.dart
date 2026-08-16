@@ -5,7 +5,7 @@ class Product {
   final String productId;
   final String name;
   final String description;
-  final int boxes;
+  final int totalPieces; // Unit of inventory
   final int quantityPerBox;
   final double purchasePrice;
   final String arrivalDate;
@@ -16,11 +16,15 @@ class Product {
     required this.productId,
     required this.name,
     required this.description,
-    required this.boxes,
+    required this.totalPieces,
     required this.quantityPerBox,
     required this.purchasePrice,
     required this.arrivalDate,
   });
+
+  // Updated getters to handle cases where quantityPerBox is not defined (0)
+  int get fullBoxes => (quantityPerBox > 0) ? (totalPieces ~/ quantityPerBox) : 0;
+  int get loosePieces => (quantityPerBox > 0) ? (totalPieces % quantityPerBox) : totalPieces;
 
   Map<String, dynamic> toMap() {
     return {
@@ -29,7 +33,7 @@ class Product {
       "productId": productId,
       "name": name,
       "description": description,
-      "boxes": boxes,
+      "totalPieces": totalPieces,
       "quantityPerBox": quantityPerBox,
       "purchasePrice": purchasePrice,
       "arrivalDate": arrivalDate,
@@ -43,8 +47,8 @@ class Product {
       productId: map["productId"],
       name: map["name"],
       description: map["description"],
-      boxes: map["boxes"],
-      quantityPerBox: map["quantityPerBox"],
+      totalPieces: map["totalPieces"] ?? (map["boxes"] ?? 0) * (map["quantityPerBox"] ?? 1),
+      quantityPerBox: map["quantityPerBox"] ?? 0, // Default to 0 if not specified
       purchasePrice: (map["purchasePrice"] as num).toDouble(),
       arrivalDate: map["arrivalDate"],
     );

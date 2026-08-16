@@ -25,6 +25,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
   Product? selectedProduct;
 
   final TextEditingController _boxesController = TextEditingController();
+  final TextEditingController _loosePiecesController = TextEditingController(text: "0");
   final TextEditingController _qpbController = TextEditingController();
   final TextEditingController _sellingPriceController = TextEditingController();
   final TextEditingController _discountController = TextEditingController();
@@ -39,6 +40,17 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     super.initState();
     _loadData();
     _discountController.addListener(_calculateTotals);
+  }
+
+  @override
+  void dispose() {
+    _boxesController.dispose();
+    _loosePiecesController.dispose();
+    _qpbController.dispose();
+    _sellingPriceController.dispose();
+    _discountController.dispose();
+    _remarksController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -71,22 +83,25 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     }
     
     int boxes = int.tryParse(_boxesController.text) ?? 0;
+    int loose = int.tryParse(_loosePiecesController.text) ?? 0;
     int qpb = int.tryParse(_qpbController.text) ?? 0;
     double price = double.tryParse(_sellingPriceController.text) ?? selectedProduct!.purchasePrice;
 
-    if (boxes <= 0 || qpb <= 0) {
+    if ((boxes <= 0 && loose <= 0) || qpb <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Enter valid boxes and quantity.")),
+        const SnackBar(content: Text("Enter valid quantity and boxes.")),
       );
       return;
     }
 
-    double itemTotal = boxes * qpb * price;
+    // Calculation based on total pieces
+    double itemTotal = ((boxes * qpb) + loose) * price;
 
     final newItem = OrderItem(
       orderId: 0, 
       productId: selectedProduct!.id!,
       boxes: boxes,
+      loosePieces: loose,
       quantityPerBox: qpb,
       sellingPrice: price,
       totalPrice: itemTotal,
@@ -96,6 +111,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     setState(() {
       orderItems.add(newItem);
       _boxesController.clear();
+      _loosePiecesController.text = "0";
       _qpbController.clear();
       _sellingPriceController.clear();
       selectedProduct = null;
@@ -211,6 +227,14 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextFormField(
+                        controller: _loosePiecesController,
+                        decoration: const InputDecoration(labelText: "Loose", border: OutlineInputBorder()),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextFormField(
                         controller: _qpbController,
                         decoration: const InputDecoration(labelText: "Qty/Box", border: OutlineInputBorder()),
                         keyboardType: TextInputType.number,
@@ -264,7 +288,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                       return ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(product.name),
-                        subtitle: Text("${item.boxes} boxes x ${item.quantityPerBox} qty @ ${item.sellingPrice}"),
+                        subtitle: Text("${item.boxes} boxes x ${item.quantityPerBox} qty, ${item.loosePieces} loose  @ ${item.sellingPrice}"),
                         trailing: Text(item.totalPrice.toStringAsFixed(2), style: const TextStyle(fontWeight: FontWeight.bold)),
                         onLongPress: () {
                           setState(() {

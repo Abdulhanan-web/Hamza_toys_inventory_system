@@ -4,7 +4,11 @@ import '../database/database_helper.dart';
 
 class ReportsScreen extends StatefulWidget {
   final int userId;
-  const ReportsScreen({super.key, required this.userId});
+
+  const ReportsScreen({
+    super.key,
+    required this.userId,
+  });
 
   @override
   State<ReportsScreen> createState() => _ReportsScreenState();

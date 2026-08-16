@@ -38,7 +38,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     super.initState();
 
     _clientIdController = TextEditingController(
-      text: widget.client?.clientId ?? "",
+      text: widget.client?.clientId ?? "CLI-${DateTime.now().millisecondsSinceEpoch}",
     );
 
     _nameController = TextEditingController(
@@ -105,6 +105,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     bool readOnly = false,
     VoidCallback? onTap,
     Widget? suffixIcon,
+    bool isOptional = false,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
@@ -115,19 +116,21 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         readOnly: readOnly,
         onTap: onTap,
         validator: (value) {
-          if (value == null || value.trim().isEmpty) {
+          if (!isOptional && (value == null || value.trim().isEmpty)) {
             return "$label is required";
           }
 
-          if (label == "Phone Number") {
-            if (value.length < 11) {
-              return "Enter valid phone number";
+          if (value != null && value.trim().isNotEmpty) {
+            if (label == "Phone Number") {
+              if (value.length < 11) {
+                return "Enter valid phone number";
+              }
             }
-          }
 
-          if (label == "Balance") {
-            if (double.tryParse(value) == null) {
-              return "Enter valid balance";
+            if (label == "Balance") {
+              if (double.tryParse(value) == null) {
+                return "Enter valid balance";
+              }
             }
           }
 
@@ -135,6 +138,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         },
         decoration: InputDecoration(
           labelText: label,
+          filled: readOnly,
+          fillColor: readOnly ? Colors.grey.shade100 : null,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -143,6 +148,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       ),
     );
   }
+
   Future<void> _saveClient() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -206,6 +212,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -259,6 +266,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                       buildField(
                         label: "Client ID",
                         controller: _clientIdController,
+                        readOnly: true,
                       ),
 
                       buildField(
@@ -291,6 +299,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                         label: "Notes",
                         controller: _notesController,
                         maxLines: 4,
+                        isOptional: true,
                       ),
 
                       buildField(

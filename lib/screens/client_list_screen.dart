@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/client.dart';
 import 'client_form_screen.dart';
+import 'payment_form_screen.dart';
+import 'payment_history_screen.dart';
 
 class ClientListScreen extends StatefulWidget {
   final int userId;
@@ -18,8 +20,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
 
   bool isLoading = true;
 
-  final TextEditingController _searchController =
-  TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -105,6 +106,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
       ),
     );
   }
+
   Widget buildClientCard(Client client) {
     return Card(
       elevation: 3,
@@ -117,20 +119,16 @@ class _ClientListScreenState extends State<ClientListScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             Row(
               children: [
                 const CircleAvatar(
                   radius: 26,
                   child: Icon(Icons.person),
                 ),
-
                 const SizedBox(width: 15),
-
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         client.name,
@@ -139,9 +137,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-
                       const SizedBox(height: 3),
-
                       Text(
                         "Client ID : ${client.clientId}",
                         style: const TextStyle(
@@ -153,9 +149,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
                 ),
               ],
             ),
-
             const Divider(height: 30),
-
             Row(
               children: [
                 const Icon(Icons.phone, size: 18),
@@ -165,12 +159,9 @@ class _ClientListScreenState extends State<ClientListScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 10),
-
             Row(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Icon(Icons.location_on, size: 18),
                 const SizedBox(width: 8),
@@ -179,9 +170,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 10),
-
             Row(
               children: [
                 const Icon(
@@ -193,31 +182,25 @@ class _ClientListScreenState extends State<ClientListScreen> {
                   "Balance : Rs. ${client.balance.toStringAsFixed(2)}",
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
+                    color: Colors.red,
                   ),
                 ),
               ],
             ),
-
             const SizedBox(height: 10),
-
             Row(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Icon(Icons.notes, size: 18),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    client.notes.isEmpty
-                        ? "No notes"
-                        : client.notes,
+                    client.notes.isEmpty ? "No notes" : client.notes,
                   ),
                 ),
               ],
             ),
-
             const SizedBox(height: 10),
-
             Row(
               children: [
                 const Icon(
@@ -228,46 +211,61 @@ class _ClientListScreenState extends State<ClientListScreen> {
                 Text(client.createdAt),
               ],
             ),
-
             const SizedBox(height: 25),
-
-            Row(
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
               children: [
-
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.edit),
-                    label: const Text("Edit"),
-                    onPressed: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              ClientFormScreen(
-                                userId: widget.userId,
-                                client: client,
-                              ),
-                        ),
-                      );
-
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PaymentFormScreen(client: client),
+                      ),
+                    );
+                    if (result == true) {
                       loadClients();
-                    },
-                  ),
+                    }
+                  },
+                  icon: const Icon(Icons.add_card),
+                  label: const Text("Pay"),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
                 ),
-
-                const SizedBox(width: 15),
-
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                    ),
-                    icon: const Icon(Icons.delete),
-                    label: const Text("Delete"),
-                    onPressed: () {
-                      deleteClient(client);
-                    },
-                  ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PaymentHistoryScreen(client: client),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.history),
+                  label: const Text("History"),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ClientFormScreen(
+                          userId: widget.userId,
+                          client: client,
+                        ),
+                      ),
+                    );
+                    loadClients();
+                  },
+                  icon: const Icon(Icons.edit),
+                  label: const Text("Edit"),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => deleteClient(client),
+                  icon: const Icon(Icons.delete),
+                  label: const Text("Delete"),
+                  style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
                 ),
               ],
             ),
@@ -276,6 +274,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -289,7 +288,6 @@ class _ClientListScreenState extends State<ClientListScreen> {
           ),
         ],
       ),
-
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           await Navigator.push(
@@ -304,7 +302,6 @@ class _ClientListScreenState extends State<ClientListScreen> {
         icon: const Icon(Icons.person_add),
         label: const Text("Add Client"),
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -316,56 +313,53 @@ class _ClientListScreenState extends State<ClientListScreen> {
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                    searchClients("");
-                  },
-                )
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          searchClients("");
+                        },
+                      )
                     : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
             Expanded(
               child: isLoading
                   ? const Center(
-                child: CircularProgressIndicator(),
-              )
+                      child: CircularProgressIndicator(),
+                    )
                   : filteredClients.isEmpty
-                  ? Center(
-                child: Column(
-                  mainAxisAlignment:
-                  MainAxisAlignment.center,
-                  children: const [
-                    Icon(
-                      Icons.people_outline,
-                      size: 80,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(height: 15),
-                    Text(
-                      "No Clients Found",
-                      style: TextStyle(
-                        fontSize: 22,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-                  : ListView.builder(
-                itemCount: filteredClients.length,
-                itemBuilder: (context, index) {
-                  return buildClientCard(
-                    filteredClients[index],
-                  );
-                },
-              ),
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.people_outline,
+                                size: 80,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 15),
+                              Text(
+                                "No Clients Found",
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: filteredClients.length,
+                          itemBuilder: (context, index) {
+                            return buildClientCard(
+                              filteredClients[index],
+                            );
+                          },
+                        ),
             ),
           ],
         ),
