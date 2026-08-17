@@ -221,6 +221,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         children: [
           AppSidebar(
             userId: widget.userId,
+            currentPage: "clients",
           ),
           Expanded(
             child: Scaffold(

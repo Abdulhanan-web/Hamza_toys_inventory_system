@@ -93,6 +93,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           AppSidebar(
             userId: widget.userId,
             onRefresh: _loadSummary,
+            currentPage: "reports",
           ),
           Expanded(
             child: Scaffold(

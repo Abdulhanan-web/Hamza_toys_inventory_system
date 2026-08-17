@@ -251,6 +251,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         children: [
           AppSidebar(
             userId: widget.userId,
+            currentPage: isEdit ? "dashboard" : "add_product",
           ),
           Expanded(
             child: Scaffold(
@@ -259,7 +260,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   isEdit ? "Edit Product" : "Add Product",
                 ),
                 centerTitle: true,
-                automaticallyImplyLeading: false,
+                automaticallyImplyLeading: isEdit,
               ),
               body: Center(
                 child: SizedBox(

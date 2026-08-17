@@ -161,6 +161,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
           AppSidebar(
             userId: widget.userId,
             onRefresh: _loadData,
+            currentPage: "add_order",
           ),
           Expanded(
             child: Scaffold(

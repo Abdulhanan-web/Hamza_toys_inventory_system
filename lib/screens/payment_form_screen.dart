@@ -61,6 +61,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
         children: [
           AppSidebar(
             userId: widget.client.userId,
+            currentPage: "clients",
           ),
           Expanded(
             child: Scaffold(

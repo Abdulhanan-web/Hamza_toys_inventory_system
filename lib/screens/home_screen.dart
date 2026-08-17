@@ -91,8 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget buildProductCard(Product product) {
     return Card(
-      elevation: 3,
-      margin: const EdgeInsets.only(bottom: 18),
+      elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
@@ -108,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
           loadProducts();
         },
         child: Padding(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -118,103 +117,81 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: Text(
                       product.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                  const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
                 ],
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.inventory_2, size: 18, color: Colors.blueGrey),
+                  const Icon(Icons.inventory_2, size: 16, color: Colors.blueGrey),
                   const SizedBox(width: 8),
-                  Text(
-                    "Stock: ${product.fullBoxes} Boxes, ${product.loosePieces} Pieces",
-                    style: const TextStyle(fontSize: 16),
+                  Expanded(
+                    child: Text(
+                      "Stock: ${product.fullBoxes} B, ${product.loosePieces} P",
+                      style: const TextStyle(fontSize: 14),
+                    ),
                   )
                 ],
               ),
               const SizedBox(height: 6),
               Row(
                 children: [
-                  const Icon(Icons.category, size: 18, color: Colors.blueGrey),
+                  const Icon(Icons.category, size: 16, color: Colors.blueGrey),
                   const SizedBox(width: 8),
                   Text(
-                    "Quantity / Box: ${product.quantityPerBox}",
-                    style: const TextStyle(fontSize: 16),
+                    "Qty/Box: ${product.quantityPerBox}",
+                    style: const TextStyle(fontSize: 14),
                   )
                 ],
               ),
-              const SizedBox(height: 20),
+              const Spacer(),
+              const Divider(),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    flex: 3,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(0, 45),
-                      ),
-                      icon: const Icon(Icons.add_shopping_cart, size: 18),
-                      label: const Text("Add Stock"),
-                      onPressed: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AddStockScreen(product: product),
-                          ),
-                        );
-                        if (result == true) {
-                          loadProducts();
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 1,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(0, 45),
-                        padding: EdgeInsets.zero,
-                      ),
-                      onPressed: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ProductFormScreen(
-                              userId: widget.userId,
-                              product: product,
-                            ),
-                          ),
-                        );
+                  IconButton(
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AddStockScreen(product: product),
+                        ),
+                      );
+                      if (result == true) {
                         loadProducts();
-                      },
-                      child: const Icon(Icons.edit, size: 18),
-                    ),
+                      }
+                    },
+                    icon: const Icon(Icons.add_shopping_cart, color: Colors.green),
+                    tooltip: "Add Stock",
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 1,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(0, 45),
-                        padding: EdgeInsets.zero,
-                      ),
-                      onPressed: () {
-                        deleteProduct(product);
-                      },
-                      child: const Icon(Icons.delete, size: 18),
-                    ),
+                  IconButton(
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ProductFormScreen(
+                            userId: widget.userId,
+                            product: product,
+                          ),
+                        ),
+                      );
+                      loadProducts();
+                    },
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    tooltip: "Edit Product",
+                  ),
+                  IconButton(
+                    onPressed: () => deleteProduct(product),
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    tooltip: "Delete Product",
                   ),
                 ],
               )
@@ -234,6 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
             userId: widget.userId,
             username: widget.username,
             onRefresh: loadProducts,
+            currentPage: "dashboard",
           ),
           Expanded(
             child: Padding(
@@ -241,55 +219,56 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
+                  // Welcome Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const CircleAvatar(
-                            radius: 35,
-                            child: Icon(
-                              Icons.person,
-                              size: 35,
+                          Text(
+                            "Welcome, ${widget.username}!",
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(width: 18),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "Welcome",
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  widget.username,
-                                  style: const TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          const Text(
+                            "Here is your inventory overview",
+                            style: TextStyle(color: Colors.grey, fontSize: 16),
                           ),
                         ],
                       ),
-                    ),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProductFormScreen(userId: widget.userId),
+                            ),
+                          );
+                          loadProducts();
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text("New Product"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(180, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 25),
+                  
+                  const SizedBox(height: 30),
+                  
                   const Text(
                     "Dashboard",
                     style: TextStyle(
-                      fontSize: 28,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -297,38 +276,43 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: isLoading
                         ? const Center(
-                      child: CircularProgressIndicator(),
-                    )
+                            child: CircularProgressIndicator(),
+                          )
                         : products.isEmpty
-                        ? const Center(
-                      child: Column(
-                        mainAxisAlignment:
-                        MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.inventory_2_outlined,
-                            size: 80,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(height: 15),
-                          Text(
-                            "No Products Added",
-                            style: TextStyle(
-                              fontSize: 22,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                        : ListView.builder(
-                      itemCount: products.length,
-                      itemBuilder: (context, index) {
-                        return buildProductCard(
-                          products[index],
-                        );
-                      },
-                    ),
+                            ? const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.inventory_2_outlined,
+                                      size: 80,
+                                      color: Colors.grey,
+                                    ),
+                                    SizedBox(height: 15),
+                                    Text(
+                                      "No Products Added",
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : GridView.builder(
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  crossAxisSpacing: 20,
+                                  mainAxisSpacing: 20,
+                                  childAspectRatio: 1.2,
+                                ),
+                                itemCount: products.length,
+                                itemBuilder: (context, index) {
+                                  return buildProductCard(
+                                    products[index],
+                                  );
+                                },
+                              ),
                   ),
                 ],
               ),

@@ -147,6 +147,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           AppSidebar(
             userId: widget.userId,
             onRefresh: _loadPayments,
+            currentPage: "payment_history",
           ),
           Expanded(
             child: Scaffold(

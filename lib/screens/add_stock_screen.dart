@@ -76,12 +76,13 @@ class _AddStockScreenState extends State<AddStockScreen> {
         children: [
           AppSidebar(
             userId: widget.product.userId,
+            currentPage: "dashboard",
           ),
           Expanded(
             child: Scaffold(
               appBar: AppBar(
                 title: Text("Add Stock: ${widget.product.name}"),
-                automaticallyImplyLeading: false,
+                automaticallyImplyLeading: true,
               ),
               body: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),

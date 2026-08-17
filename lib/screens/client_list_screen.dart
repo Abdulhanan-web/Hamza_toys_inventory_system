@@ -286,6 +286,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
           AppSidebar(
             userId: widget.userId,
             onRefresh: loadClients,
+            currentPage: "clients",
           ),
           Expanded(
             child: Scaffold(

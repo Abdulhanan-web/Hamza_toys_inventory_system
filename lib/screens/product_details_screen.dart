@@ -38,12 +38,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         children: [
           AppSidebar(
             userId: widget.product.userId,
+            currentPage: "dashboard",
           ),
           Expanded(
             child: Scaffold(
               appBar: AppBar(
                 title: const Text("Product Details"),
-                automaticallyImplyLeading: false,
+                automaticallyImplyLeading: true,
               ),
               body: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),

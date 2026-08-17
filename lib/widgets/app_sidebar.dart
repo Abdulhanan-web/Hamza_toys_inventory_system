@@ -12,33 +12,47 @@ class AppSidebar extends StatelessWidget {
   final int userId;
   final String? username;
   final VoidCallback? onRefresh;
+  final String currentPage;
 
   const AppSidebar({
     super.key,
     required this.userId,
     this.username,
     this.onRefresh,
+    this.currentPage = "",
   });
 
   Widget sidebarButton({
     required IconData icon,
     required String title,
     required VoidCallback onTap,
-    Color color = Colors.white,
+    bool isActive = false,
+    Color activeColor = Colors.blue,
+    Color inactiveColor = Colors.white,
   }) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: color,
+    final displayColor = isActive ? activeColor : inactiveColor;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: isActive ? activeColor.withOpacity(0.2) : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
       ),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: color,
-          fontSize: 16,
+      child: ListTile(
+        leading: Icon(
+          icon,
+          color: displayColor,
         ),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: displayColor,
+            fontSize: 16,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        onTap: onTap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
-      onTap: onTap,
     );
   }
 
@@ -82,9 +96,10 @@ class AppSidebar extends StatelessWidget {
             sidebarButton(
               icon: Icons.dashboard,
               title: "Dashboard",
+              isActive: currentPage == "dashboard",
               onTap: () {
-                if (ModalRoute.of(context)?.settings.name == '/home') {
-                   onRefresh?.call();
+                if (currentPage == "dashboard") {
+                  onRefresh?.call();
                 } else {
                   Navigator.pushReplacement(
                     context,
@@ -93,7 +108,6 @@ class AppSidebar extends StatelessWidget {
                         userId: userId,
                         username: username ?? "User",
                       ),
-                      settings: const RouteSettings(name: '/home'),
                     ),
                   );
                 }
@@ -102,7 +116,9 @@ class AppSidebar extends StatelessWidget {
             sidebarButton(
               icon: Icons.add_box,
               title: "Add Product",
+              isActive: currentPage == "add_product",
               onTap: () async {
+                if (currentPage == "add_product") return;
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -115,7 +131,9 @@ class AppSidebar extends StatelessWidget {
             sidebarButton(
               icon: Icons.people,
               title: "Clients",
+              isActive: currentPage == "clients",
               onTap: () async {
+                if (currentPage == "clients") return;
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -128,7 +146,9 @@ class AppSidebar extends StatelessWidget {
             sidebarButton(
               icon: Icons.shopping_cart,
               title: "Add Order",
+              isActive: currentPage == "add_order",
               onTap: () async {
+                if (currentPage == "add_order") return;
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -141,7 +161,9 @@ class AppSidebar extends StatelessWidget {
             sidebarButton(
               icon: Icons.list_alt,
               title: "View Orders",
+              isActive: currentPage == "view_orders",
               onTap: () async {
+                if (currentPage == "view_orders") return;
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -154,7 +176,9 @@ class AppSidebar extends StatelessWidget {
             sidebarButton(
               icon: Icons.history,
               title: "Payment History",
+              isActive: currentPage == "payment_history",
               onTap: () async {
+                if (currentPage == "payment_history") return;
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -167,7 +191,9 @@ class AppSidebar extends StatelessWidget {
             sidebarButton(
               icon: Icons.bar_chart,
               title: "Reports",
+              isActive: currentPage == "reports",
               onTap: () async {
+                if (currentPage == "reports") return;
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -184,7 +210,8 @@ class AppSidebar extends StatelessWidget {
             sidebarButton(
               icon: Icons.logout,
               title: "Logout",
-              color: Colors.redAccent,
+              isActive: false,
+              inactiveColor: Colors.redAccent,
               onTap: () => logout(context),
             ),
             const SizedBox(height: 20),

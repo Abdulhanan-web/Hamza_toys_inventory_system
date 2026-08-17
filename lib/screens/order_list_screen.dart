@@ -103,6 +103,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
           AppSidebar(
             userId: widget.userId,
             onRefresh: _loadOrders,
+            currentPage: "view_orders",
           ),
           Expanded(
             child: Scaffold(
