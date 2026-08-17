@@ -237,7 +237,10 @@ class _ClientListScreenState extends State<ClientListScreen> {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => PaymentHistoryScreen(client: client),
+                        builder: (_) => PaymentHistoryScreen(
+                          userId: widget.userId,
+                          client: client,
+                        ),
                       ),
                     );
                   },

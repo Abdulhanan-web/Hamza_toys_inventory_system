@@ -9,6 +9,8 @@ import 'order_form_screen.dart';
 import 'order_list_screen.dart';
 import 'reports_screen.dart';
 import 'add_stock_screen.dart';
+import 'product_details_screen.dart';
+import 'payment_history_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final int userId;
@@ -59,14 +61,19 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               child: const Text("Cancel"),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+            // Wrap in SizedBox to prevent infinite width from global theme
+            SizedBox(
+              width: 100,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  minimumSize: const Size(0, 40),
+                ),
+                onPressed: () {
+                  Navigator.pop(context, true);
+                },
+                child: const Text("Delete"),
               ),
-              onPressed: () {
-                Navigator.pop(context, true);
-              },
-              child: const Text("Delete"),
             ),
           ],
         );
@@ -127,132 +134,143 @@ class _HomeScreenState extends State<HomeScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            Text(
-              product.name,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(15),
+        onTap: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ProductDetailsScreen(product: product),
+            ),
+          );
+          loadProducts();
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      product.name,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                ],
               ),
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            Row(
-              children: [
-                const Icon(Icons.inventory_2,size:18),
-                const SizedBox(width:8),
-                Text("Stock : ${product.fullBoxes} Boxes, ${product.loosePieces} Pieces")
-              ],
-            ),
+              Row(
+                children: [
+                  const Icon(Icons.inventory_2, size: 18, color: Colors.blueGrey),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Stock: ${product.fullBoxes} Boxes, ${product.loosePieces} Pieces",
+                    style: const TextStyle(fontSize: 16),
+                  )
+                ],
+              ),
 
-            const SizedBox(height: 6),
+              const SizedBox(height: 6),
 
-            Row(
-              children: [
-                const Icon(Icons.category,size:18),
-                const SizedBox(width:8),
-                Text("Quantity / Box : ${product.quantityPerBox}")
-              ],
-            ),
+              Row(
+                children: [
+                  const Icon(Icons.category, size: 18, color: Colors.blueGrey),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Quantity / Box: ${product.quantityPerBox}",
+                    style: const TextStyle(fontSize: 16),
+                  )
+                ],
+              ),
 
-            const SizedBox(height: 6),
+              const SizedBox(height: 20),
 
-            Row(
-              children: [
-                const Icon(Icons.currency_rupee,size:18),
-                const SizedBox(width:8),
-                Text("Purchase Price : ${product.purchasePrice}")
-              ],
-            ),
-
-            const SizedBox(height: 6),
-
-            Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 18),
-                const SizedBox(width: 8),
-                Text("Arrival Date : ${product.arrivalDate}")
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            Row(
-              children: [
-
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                    icon: const Icon(Icons.add_shopping_cart),
-                    label: const Text("Add Stock"),
-                    onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AddStockScreen(product: product),
-                        ),
-                      );
-                      if (result == true) {
-                        loadProducts();
-                      }
-                    },
-                  ),
-                ),
-
-                const SizedBox(width: 10),
-
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.edit),
-                    label: const Text("Edit"),
-                    onPressed: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ProductFormScreen(
-                            userId: widget.userId,
-                            product: product,
+              Row(
+                children: [
+                  // All buttons in the Row are now wrapped in Expanded
+                  // to provide them with finite width constraints.
+                  Expanded(
+                    flex: 3,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(0, 45),
+                      ),
+                      icon: const Icon(Icons.add_shopping_cart, size: 18),
+                      label: const Text("Add Stock"),
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AddStockScreen(product: product),
                           ),
-                        ),
-                      );
-
-                      loadProducts();
-                    },
-                  ),
-                ),
-
-                const SizedBox(width: 10),
-
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
+                        );
+                        if (result == true) {
+                          loadProducts();
+                        }
+                      },
                     ),
-                    icon: const Icon(Icons.delete),
-                    label: const Text("Delete"),
-                    onPressed: () {
-                      deleteProduct(product);
-                    },
                   ),
-                ),
-
-              ],
-            )
-
-          ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 1,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(0, 45),
+                        padding: EdgeInsets.zero,
+                      ),
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ProductFormScreen(
+                              userId: widget.userId,
+                              product: product,
+                            ),
+                          ),
+                        );
+                        loadProducts();
+                      },
+                      child: const Icon(Icons.edit, size: 18),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 1,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(0, 45),
+                        padding: EdgeInsets.zero,
+                      ),
+                      onPressed: () {
+                        deleteProduct(product);
+                      },
+                      child: const Icon(Icons.delete, size: 18),
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -356,6 +374,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => OrderListScreen(userId: widget.userId),
+                        ),
+                      );
+                    },
+                  ),
+
+                  sidebarButton(
+                    icon: Icons.history,
+                    title: "Payment History",
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PaymentHistoryScreen(userId: widget.userId),
                         ),
                       );
                     },

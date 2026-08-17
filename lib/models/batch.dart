@@ -1,4 +1,5 @@
-class Batch {
+// lib/models/product_batch.dart
+class ProductBatch {
   final int? id;
   final int productId;
   final int quantityPurchased;
@@ -6,7 +7,7 @@ class Batch {
   final double purchasePrice;
   final String purchaseDate;
 
-  Batch({
+  ProductBatch({
     this.id,
     required this.productId,
     required this.quantityPurchased,
@@ -26,8 +27,8 @@ class Batch {
     };
   }
 
-  factory Batch.fromMap(Map<String, dynamic> map) {
-    return Batch(
+  factory ProductBatch.fromMap(Map<String, dynamic> map) {
+    return ProductBatch(
       id: map["id"],
       productId: map["productId"],
       quantityPurchased: map["quantityPurchased"],

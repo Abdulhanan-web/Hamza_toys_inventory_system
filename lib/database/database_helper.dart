@@ -8,7 +8,7 @@ import '../models/client.dart';
 import '../models/order.dart';
 import '../models/order_item.dart';
 import '../models/payment.dart';
-import '../models/batch.dart';
+import '../models/batch.dart'; // This file now contains ProductBatch
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -372,6 +372,17 @@ class DatabaseHelper {
     return result.map((e) => Payment.fromMap(e)).toList();
   }
 
+  Future<List<Map<String, dynamic>>> getAllPaymentsWithClientNames(int userId) async {
+    final db = await database;
+    return await db.rawQuery('''
+      SELECT p.*, c.name AS clientName
+      FROM payments p
+      INNER JOIN clients c ON p.clientId = c.id
+      WHERE c.userId = ?
+      ORDER BY p.date DESC
+    ''', [userId]);
+  }
+
   //======================== ORDERS ========================//
   Future<int> insertOrder(Order order) async {
     final db = await database;
@@ -588,5 +599,16 @@ class DatabaseHelper {
         [pieces, purchasePrice, date, productId],
       );
     });
+  }
+
+  Future<List<ProductBatch>> getBatchesForProduct(int productId) async {
+    final db = await database;
+    final result = await db.query(
+      "batches",
+      where: "productId = ?",
+      whereArgs: [productId],
+      orderBy: "purchaseDate DESC",
+    );
+    return result.map((e) => ProductBatch.fromMap(e)).toList();
   }
 }
