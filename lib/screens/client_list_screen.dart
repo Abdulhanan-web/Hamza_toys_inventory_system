@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../database/database_helper.dart';
 import '../models/client.dart';
+import '../widgets/app_sidebar.dart';
 import 'client_form_screen.dart';
 import 'payment_form_screen.dart';
 import 'payment_history_screen.dart';
@@ -281,91 +281,103 @@ class _ClientListScreenState extends State<ClientListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Clients"),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: loadClients,
+      body: Row(
+        children: [
+          AppSidebar(
+            userId: widget.userId,
+            onRefresh: loadClients,
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ClientFormScreen(userId: widget.userId),
-            ),
-          );
-
-          loadClients();
-        },
-        icon: const Icon(Icons.person_add),
-        label: const Text("Add Client"),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: "Search by name, phone or client ID...",
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          searchClients("");
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+          Expanded(
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text("Clients"),
+                centerTitle: true,
+                automaticallyImplyLeading: false,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: loadClients,
+                  ),
+                ],
+              ),
+              floatingActionButton: FloatingActionButton.extended(
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ClientFormScreen(userId: widget.userId),
+                    ),
+                  );
+                  loadClients();
+                },
+                icon: const Icon(Icons.person_add),
+                label: const Text("Add Client"),
+              ),
+              body: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: "Search by name, phone or client ID...",
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  searchClients("");
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Expanded(
+                      child: isLoading
+                          ? const Center(
+                              child: CircularProgressIndicator(),
+                            )
+                          : filteredClients.isEmpty
+                              ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Icon(
+                                        Icons.people_outline,
+                                        size: 80,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(height: 15),
+                                      Text(
+                                        "No Clients Found",
+                                        style: TextStyle(
+                                          fontSize: 22,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : ListView.builder(
+                                  itemCount: filteredClients.length,
+                                  itemBuilder: (context, index) {
+                                    return buildClientCard(
+                                      filteredClients[index],
+                                    );
+                                  },
+                                ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(),
-                    )
-                  : filteredClients.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(
-                                Icons.people_outline,
-                                size: 80,
-                                color: Colors.grey,
-                              ),
-                              SizedBox(height: 15),
-                              Text(
-                                "No Clients Found",
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: filteredClients.length,
-                          itemBuilder: (context, index) {
-                            return buildClientCard(
-                              filteredClients[index],
-                            );
-                          },
-                        ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

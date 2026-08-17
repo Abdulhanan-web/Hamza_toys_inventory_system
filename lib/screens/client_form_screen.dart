@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../database/database_helper.dart';
 import '../models/client.dart';
+import '../widgets/app_sidebar.dart';
 
 class ClientFormScreen extends StatefulWidget {
   final int userId;
@@ -216,161 +217,159 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          isEdit ? "Edit Client" : "Add Client",
-        ),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: SizedBox(
-          width: 700,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(25),
-            child: Card(
-              elevation: 5,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
+      body: Row(
+        children: [
+          AppSidebar(
+            userId: widget.userId,
+          ),
+          Expanded(
+            child: Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  isEdit ? "Edit Client" : "Add Client",
+                ),
+                centerTitle: true,
+                automaticallyImplyLeading: !isEdit,
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(25),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.stretch,
-                    children: [
-                      Icon(
-                        isEdit
-                            ? Icons.person
-                            : Icons.person_add,
-                        color: Colors.blue,
-                        size: 70,
+              body: Center(
+                child: SizedBox(
+                  width: 700,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(25),
+                    child: Card(
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
                       ),
-
-                      const SizedBox(height: 15),
-
-                      Text(
-                        isEdit
-                            ? "Edit Client"
-                            : "Add New Client",
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      const SizedBox(height: 35),
-
-                      buildField(
-                        label: "Client ID",
-                        controller: _clientIdController,
-                        readOnly: true,
-                      ),
-
-                      buildField(
-                        label: "Client Name",
-                        controller: _nameController,
-                      ),
-
-                      buildField(
-                        label: "Phone Number",
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                      ),
-
-                      buildField(
-                        label: "Address",
-                        controller: _addressController,
-                        maxLines: 3,
-                      ),
-
-                      buildField(
-                        label: "Balance",
-                        controller: _balanceController,
-                        keyboardType:
-                        const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                      ),
-
-                      buildField(
-                        label: "Notes",
-                        controller: _notesController,
-                        maxLines: 4,
-                        isOptional: true,
-                      ),
-
-                      buildField(
-                        label: "Created Date",
-                        controller: _createdAtController,
-                        readOnly: true,
-                        onTap: _pickDate,
-                        suffixIcon: IconButton(
-                          icon: const Icon(
-                            Icons.calendar_month,
+                      child: Padding(
+                        padding: const EdgeInsets.all(25),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment:
+                            CrossAxisAlignment.stretch,
+                            children: [
+                              Icon(
+                                isEdit
+                                    ? Icons.person
+                                    : Icons.person_add,
+                                color: Colors.blue,
+                                size: 70,
+                              ),
+                              const SizedBox(height: 15),
+                              Text(
+                                isEdit
+                                    ? "Edit Client"
+                                    : "Add New Client",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 35),
+                              buildField(
+                                label: "Client ID",
+                                controller: _clientIdController,
+                                readOnly: true,
+                              ),
+                              buildField(
+                                label: "Client Name",
+                                controller: _nameController,
+                              ),
+                              buildField(
+                                label: "Phone Number",
+                                controller: _phoneController,
+                                keyboardType: TextInputType.phone,
+                              ),
+                              buildField(
+                                label: "Address",
+                                controller: _addressController,
+                                maxLines: 3,
+                              ),
+                              buildField(
+                                label: "Balance",
+                                controller: _balanceController,
+                                keyboardType:
+                                const TextInputType.numberWithOptions(
+                                  decimal: true,
+                                ),
+                              ),
+                              buildField(
+                                label: "Notes",
+                                controller: _notesController,
+                                maxLines: 4,
+                                isOptional: true,
+                              ),
+                              buildField(
+                                label: "Created Date",
+                                controller: _createdAtController,
+                                readOnly: true,
+                                onTap: _pickDate,
+                                suffixIcon: IconButton(
+                                  icon: const Icon(
+                                    Icons.calendar_month,
+                                  ),
+                                  onPressed: _pickDate,
+                                ),
+                              ),
+                              const SizedBox(height: 25),
+                              SizedBox(
+                                height: 55,
+                                child: ElevatedButton.icon(
+                                  onPressed:
+                                  _isLoading ? null : _saveClient,
+                                  icon: _isLoading
+                                      ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child:
+                                    CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                      : Icon(
+                                    isEdit
+                                        ? Icons.save
+                                        : Icons.person_add,
+                                  ),
+                                  label: Text(
+                                    _isLoading
+                                        ? "Please wait..."
+                                        : (isEdit
+                                        ? "Update Client"
+                                        : "Add Client"),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (isEdit) ...[
+                                const SizedBox(height: 15),
+                                SizedBox(
+                                  height: 50,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    icon: const Icon(Icons.close),
+                                    label: const Text("Cancel"),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
-                          onPressed: _pickDate,
                         ),
                       ),
-
-                      const SizedBox(height: 25),
-
-                      SizedBox(
-                        height: 55,
-                        child: ElevatedButton.icon(
-                          onPressed:
-                          _isLoading ? null : _saveClient,
-                          icon: _isLoading
-                              ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child:
-                            CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                              : Icon(
-                            isEdit
-                                ? Icons.save
-                                : Icons.person_add,
-                          ),
-                          label: Text(
-                            _isLoading
-                                ? "Please wait..."
-                                : (isEdit
-                                ? "Update Client"
-                                : "Add Client"),
-                            style: const TextStyle(
-                              fontSize: 18,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      if (isEdit) ...[
-                        const SizedBox(height: 15),
-
-                        SizedBox(
-                          height: 50,
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            icon: const Icon(Icons.close),
-                            label: const Text("Cancel"),
-                          ),
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../database/database_helper.dart';
 import '../models/client.dart';
-import '../models/payment.dart';
+import '../widgets/app_sidebar.dart';
 
 class PaymentHistoryScreen extends StatefulWidget {
   final int userId;
@@ -142,135 +142,148 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.client != null 
-            ? "Payment History - ${widget.client!.name}" 
-            : "All Payments History"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadPayments,
-          ),
-        ],
-      ),
-      body: Column(
+      body: Row(
         children: [
-          // Filter Section
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: "Search Client Name...",
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              _applyFilters();
-                            },
-                          )
-                        : null,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _selectSingleDate,
-                        icon: const Icon(Icons.calendar_today, size: 18),
-                        label: Text(_startDate != null && _startDate == _endDate
-                            ? DateFormat('MMM dd, yyyy').format(_startDate!)
-                            : "Select Date"),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _selectDateRange,
-                        icon: const Icon(Icons.date_range, size: 18),
-                        label: Text(_startDate != null && _endDate != null && _startDate != _endDate
-                            ? "${DateFormat('MMM dd').format(_startDate!)} - ${DateFormat('MMM dd').format(_endDate!)}"
-                            : "Date Range"),
-                      ),
-                    ),
-                    if (_startDate != null || _searchController.text.isNotEmpty)
-                      IconButton(
-                        onPressed: _clearFilters,
-                        icon: const Icon(Icons.filter_alt_off, color: Colors.red),
-                        tooltip: "Clear Filters",
-                      ),
-                  ],
-                ),
-              ],
-            ),
+          AppSidebar(
+            userId: widget.userId,
+            onRefresh: _loadPayments,
           ),
-
-          // List Section
           Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : filteredPayments.isEmpty
-                    ? const Center(child: Text("No payments found for the selected criteria."))
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: filteredPayments.length,
-                        itemBuilder: (context, index) {
-                          final p = filteredPayments[index];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: ListTile(
-                              leading: const CircleAvatar(
-                                backgroundColor: Colors.green,
-                                child: Icon(Icons.currency_rupee, color: Colors.white, size: 20),
-                              ),
-                              title: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      p['clientName'] ?? "Unknown Client",
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                  Text(
-                                    "Rs. ${p['amount'].toStringAsFixed(2)}",
-                                    style: const TextStyle(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              subtitle: Padding(
-                                padding: const EdgeInsets.only(top: 4.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.access_time, size: 14, color: Colors.grey),
-                                        const SizedBox(width: 4),
-                                        Text(p['date'] ?? ""),
-                                      ],
-                                    ),
-                                    if (p['notes'] != null && p['notes'].toString().isNotEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 2.0),
-                                        child: Text("Note: ${p['notes']}"),
-                                      ),
-                                  ],
-                                ),
+            child: Scaffold(
+              appBar: AppBar(
+                title: Text(widget.client != null 
+                    ? "Payment History - ${widget.client!.name}" 
+                    : "All Payments History"),
+                automaticallyImplyLeading: false,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: _loadPayments,
+                  ),
+                ],
+              ),
+              body: Column(
+                children: [
+                  // Filter Section
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: "Search Client Name...",
+                            prefixIcon: const Icon(Icons.search),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      _applyFilters();
+                                    },
+                                  )
+                                : null,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _selectSingleDate,
+                                icon: const Icon(Icons.calendar_today, size: 18),
+                                label: Text(_startDate != null && _startDate == _endDate
+                                    ? DateFormat('MMM dd, yyyy').format(_startDate!)
+                                    : "Select Date"),
                               ),
                             ),
-                          );
-                        },
-                      ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _selectDateRange,
+                                icon: const Icon(Icons.date_range, size: 18),
+                                label: Text(_startDate != null && _endDate != null && _startDate != _endDate
+                                    ? "${DateFormat('MMM dd').format(_startDate!)} - ${DateFormat('MMM dd').format(_endDate!)}"
+                                    : "Date Range"),
+                              ),
+                            ),
+                            if (_startDate != null || _searchController.text.isNotEmpty)
+                              IconButton(
+                                onPressed: _clearFilters,
+                                icon: const Icon(Icons.filter_alt_off, color: Colors.red),
+                                tooltip: "Clear Filters",
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // List Section
+                  Expanded(
+                    child: isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : filteredPayments.isEmpty
+                            ? const Center(child: Text("No payments found for the selected criteria."))
+                            : ListView.builder(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: filteredPayments.length,
+                                itemBuilder: (context, index) {
+                                  final p = filteredPayments[index];
+                                  return Card(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    child: ListTile(
+                                      leading: const CircleAvatar(
+                                        backgroundColor: Colors.green,
+                                        child: Icon(Icons.currency_rupee, color: Colors.white, size: 20),
+                                      ),
+                                      title: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              p['clientName'] ?? "Unknown Client",
+                                              style: const TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                          Text(
+                                            "Rs. ${p['amount'].toStringAsFixed(2)}",
+                                            style: const TextStyle(
+                                              color: Colors.green,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      subtitle: Padding(
+                                        padding: const EdgeInsets.only(top: 4.0),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.access_time, size: 14, color: Colors.grey),
+                                                const SizedBox(width: 4),
+                                                Text(p['date'] ?? ""),
+                                              ],
+                                            ),
+                                            if (p['notes'] != null && p['notes'].toString().isNotEmpty)
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 2.0),
+                                                child: Text("Note: ${p['notes']}"),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

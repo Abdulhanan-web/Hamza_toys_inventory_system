@@ -98,6 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: const Text("Login"),
         centerTitle: true,
+        automaticallyImplyLeading: false,
       ),
       body: Center(
         child: SingleChildScrollView(

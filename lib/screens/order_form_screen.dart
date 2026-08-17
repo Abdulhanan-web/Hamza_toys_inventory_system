@@ -5,6 +5,7 @@ import '../models/client.dart';
 import '../models/product.dart';
 import '../models/order.dart';
 import '../models/order_item.dart';
+import '../widgets/app_sidebar.dart';
 
 class OrderFormScreen extends StatefulWidget {
   final int userId;
@@ -145,7 +146,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     await DatabaseHelper.instance.insertCompleteOrder(order, orderItems);
 
     if (mounted) {
-      Navigator.pop(context);
+      Navigator.pop(context, true);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Order saved successfully!")),
       );
@@ -155,199 +156,205 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Create New Order"),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // CLIENT SECTION
-                const Text("Select Client", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<Client>(
-                  isExpanded: true,
-                  value: selectedClient,
-                  items: clients.map((c) => DropdownMenuItem(value: c, child: Text(c.name))).toList(),
-                  onChanged: (val) => setState(() => selectedClient = val),
-                  decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12)),
-                ),
-                if (selectedClient != null) ...[
-                  const SizedBox(height: 10),
-                  Card(
-                    color: Colors.blueGrey.shade50,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Phone: ${selectedClient!.phone}"),
-                          Text("Address: ${selectedClient!.address}"),
-                          Text("Current Balance: ${selectedClient!.balance.toStringAsFixed(2)}", 
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-
-                const Divider(height: 40),
-
-                // ADD PRODUCT SECTION
-                const Text("Add Product", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<Product>(
-                  isExpanded: true,
-                  value: selectedProduct,
-                  items: products.map((p) => DropdownMenuItem(value: p, child: Text(p.name))).toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      selectedProduct = val;
-                      if (val != null) {
-                        _qpbController.text = val.quantityPerBox.toString();
-                      }
-                    });
-                  },
-                  decoration: const InputDecoration(labelText: "Product", border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _boxesController,
-                        decoration: const InputDecoration(labelText: "Boxes", border: OutlineInputBorder()),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _loosePiecesController,
-                        decoration: const InputDecoration(labelText: "Loose", border: OutlineInputBorder()),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _qpbController,
-                        decoration: const InputDecoration(labelText: "Qty/Box", border: OutlineInputBorder()),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: TextFormField(
-                        controller: _sellingPriceController,
-                        decoration: InputDecoration(
-                          labelText: "Selling Price",
-                          hintText: selectedProduct != null ? "Hint: ${selectedProduct!.purchasePrice}" : "0.0",
-                          border: const OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      flex: 1,
-                      child: SizedBox(
-                        height: 55, 
-                        child: ElevatedButton(
-                          onPressed: _addItem,
-                          child: const Text("Add", textAlign: TextAlign.center),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-                
-                // ITEMS LIST
-                if (orderItems.isNotEmpty) ...[
-                  const Text("Order Items", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: orderItems.length,
-                    itemBuilder: (context, index) {
-                      final item = orderItems[index];
-                      final product = products.firstWhere((p) => p.id == item.productId);
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(product.name),
-                        subtitle: Text("${item.boxes} boxes x ${item.quantityPerBox} qty, ${item.loosePieces} loose  @ ${item.sellingPrice}"),
-                        trailing: Text(item.totalPrice.toStringAsFixed(2), style: const TextStyle(fontWeight: FontWeight.bold)),
-                        onLongPress: () {
-                          setState(() {
-                            orderItems.removeAt(index);
-                            _calculateTotals();
-                          });
-                        },
-                      );
-                    },
-                  ),
-                ],
-
-                const Divider(height: 40),
-
-                // TOTALS SECTION
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+      body: Row(
+        children: [
+          AppSidebar(
+            userId: widget.userId,
+            onRefresh: _loadData,
+          ),
+          Expanded(
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text("Create New Order"),
+                automaticallyImplyLeading: false,
+              ),
+              body: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Form(
+                    key: _formKey,
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _buildTotalRow("Grand Total:", grandTotal.toStringAsFixed(2)),
+                        // CLIENT SECTION
+                        const Text("Select Client", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<Client>(
+                          isExpanded: true,
+                          value: selectedClient,
+                          items: clients.map((c) => DropdownMenuItem(value: c, child: Text(c.name))).toList(),
+                          onChanged: (val) => setState(() => selectedClient = val),
+                          decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12)),
+                        ),
+                        if (selectedClient != null) ...[
+                          const SizedBox(height: 10),
+                          Card(
+                            color: Colors.blueGrey.shade50,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("Phone: ${selectedClient!.phone}"),
+                                  Text("Address: ${selectedClient!.address}"),
+                                  Text("Current Balance: ${selectedClient!.balance.toStringAsFixed(2)}", 
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                        const Divider(height: 40),
+                        // ADD PRODUCT SECTION
+                        const Text("Add Product", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<Product>(
+                          isExpanded: true,
+                          value: selectedProduct,
+                          items: products.map((p) => DropdownMenuItem(value: p, child: Text(p.name))).toList(),
+                          onChanged: (val) {
+                            setState(() {
+                              selectedProduct = val;
+                              if (val != null) {
+                                _qpbController.text = val.quantityPerBox.toString();
+                              }
+                            });
+                          },
+                          decoration: const InputDecoration(labelText: "Product", border: OutlineInputBorder()),
+                        ),
                         const SizedBox(height: 10),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text("Discount:", style: TextStyle(fontSize: 16)),
-                            SizedBox(
-                              width: 100,
+                            Expanded(
                               child: TextFormField(
-                                controller: _discountController,
+                                controller: _boxesController,
+                                decoration: const InputDecoration(labelText: "Boxes", border: OutlineInputBorder()),
                                 keyboardType: TextInputType.number,
-                                textAlign: TextAlign.right,
-                                decoration: const InputDecoration(isDense: true),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _loosePiecesController,
+                                decoration: const InputDecoration(labelText: "Loose", border: OutlineInputBorder()),
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _qpbController,
+                                decoration: const InputDecoration(labelText: "Qty/Box", border: OutlineInputBorder()),
+                                keyboardType: TextInputType.number,
                               ),
                             ),
                           ],
                         ),
-                        const Divider(height: 24),
-                        _buildTotalRow("Great Grand Total:", (grandTotal - discount).toStringAsFixed(2), isBold: true, color: Colors.green),
-                        if (selectedClient != null) ...[
+                        const SizedBox(height: 10),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: TextFormField(
+                                controller: _sellingPriceController,
+                                decoration: InputDecoration(
+                                  labelText: "Selling Price",
+                                  hintText: selectedProduct != null ? "Hint: ${selectedProduct!.purchasePrice}" : "0.0",
+                                  border: const OutlineInputBorder(),
+                                ),
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              flex: 1,
+                              child: SizedBox(
+                                height: 55, 
+                                child: ElevatedButton(
+                                  onPressed: _addItem,
+                                  child: const Text("Add", textAlign: TextAlign.center),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        // ITEMS LIST
+                        if (orderItems.isNotEmpty) ...[
+                          const Text("Order Items", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
-                          _buildTotalRow("New Balance:", (selectedClient!.balance + (grandTotal - discount)).toStringAsFixed(2), isSmall: true),
-                        ]
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: orderItems.length,
+                            itemBuilder: (context, index) {
+                              final item = orderItems[index];
+                              final product = products.firstWhere((p) => p.id == item.productId);
+                              return ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(product.name),
+                                subtitle: Text("${item.boxes} boxes x ${item.quantityPerBox} qty, ${item.loosePieces} loose  @ ${item.sellingPrice}"),
+                                trailing: Text(item.totalPrice.toStringAsFixed(2), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                onLongPress: () {
+                                  setState(() {
+                                    orderItems.removeAt(index);
+                                    _calculateTotals();
+                                  });
+                                },
+                              );
+                            },
+                          ),
+                        ],
+                        const Divider(height: 40),
+                        // TOTALS SECTION
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                _buildTotalRow("Grand Total:", grandTotal.toStringAsFixed(2)),
+                                const SizedBox(height: 10),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text("Discount:", style: TextStyle(fontSize: 16)),
+                                    SizedBox(
+                                      width: 100,
+                                      child: TextFormField(
+                                        controller: _discountController,
+                                        keyboardType: TextInputType.number,
+                                        textAlign: TextAlign.right,
+                                        decoration: const InputDecoration(isDense: true),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Divider(height: 24),
+                                _buildTotalRow("Great Grand Total:", (grandTotal - discount).toStringAsFixed(2), isBold: true, color: Colors.green),
+                                if (selectedClient != null) ...[
+                                  const SizedBox(height: 8),
+                                  _buildTotalRow("New Balance:", (selectedClient!.balance + (grandTotal - discount)).toStringAsFixed(2), isSmall: true),
+                                ]
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+                        ElevatedButton(
+                          onPressed: _saveOrder,
+                          style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 18)),
+                          child: const Text("SAVE ORDER", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        ),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 30),
-                ElevatedButton(
-                  onPressed: _saveOrder,
-                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 18)),
-                  child: const Text("SAVE ORDER", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 20),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

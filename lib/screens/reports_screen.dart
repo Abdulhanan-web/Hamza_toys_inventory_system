@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../database/database_helper.dart';
+import '../widgets/app_sidebar.dart';
 
 class ReportsScreen extends StatefulWidget {
   final int userId;
@@ -87,100 +88,109 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Detailed Reports"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadSummary,
+      body: Row(
+        children: [
+          AppSidebar(
+            userId: widget.userId,
+            onRefresh: _loadSummary,
+          ),
+          Expanded(
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text("Detailed Reports"),
+                automaticallyImplyLeading: false,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: _loadSummary,
+                  ),
+                ],
+              ),
+              body: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("Financial Summary", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 15),
+                          GridView.count(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: 1.5,
+                            children: [
+                              _buildReportCard("Client Balances", totalClientBalance, Colors.red, Icons.account_balance_wallet),
+                              _buildReportCard("Inventory Value", totalInventoryValue, Colors.blue, Icons.inventory),
+                              _buildReportCard("Total Profit", totalProfit, Colors.green, Icons.trending_up),
+                              _buildReportCard("Total Orders", totalOrders.toDouble(), Colors.orange, Icons.shopping_cart, isInteger: true),
+                            ],
+                          ),
+                          const SizedBox(height: 30),
+                          const Divider(),
+                          const SizedBox(height: 15),
+                          const Text("Inventory Health", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 10),
+                          Card(
+                            child: ListTile(
+                              leading: const Icon(Icons.all_inbox, size: 40, color: Colors.blueGrey),
+                              title: const Text("Total Boxes in Stock"),
+                              trailing: Text("$totalBoxes", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          const Divider(),
+                          const SizedBox(height: 15),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Period Reports", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                              ElevatedButton.icon(
+                                onPressed: _selectDateRange,
+                                icon: const Icon(Icons.date_range),
+                                label: Text(selectedDateRange == null 
+                                  ? "Select Dates" 
+                                  : "${DateFormat('MMM d').format(selectedDateRange!.start)} - ${DateFormat('MMM d').format(selectedDateRange!.end)}"),
+                                style: ElevatedButton.styleFrom(minimumSize: const Size(100, 40)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 15),
+                          if (selectedDateRange != null) ...[
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  children: [
+                                    _buildPeriodRow("Spending (Purchases)", periodSpending, Colors.red),
+                                    const Divider(height: 20),
+                                    _buildPeriodRow("Sales (Orders)", periodSales, Colors.green),
+                                    const Divider(height: 20),
+                                    _buildPeriodRow("Net Cash Flow", periodSales - periodSpending, 
+                                      (periodSales - periodSpending) >= 0 ? Colors.green : Colors.red, isBold: true),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ] else ...[
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(20.0),
+                                child: Text("Select a date range to see spending and sales.", style: TextStyle(color: Colors.grey)),
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+            ),
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("Financial Summary", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 15),
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 1.5,
-                    children: [
-                      _buildReportCard("Client Balances", totalClientBalance, Colors.red, Icons.account_balance_wallet),
-                      _buildReportCard("Inventory Value", totalInventoryValue, Colors.blue, Icons.inventory),
-                      _buildReportCard("Total Profit", totalProfit, Colors.green, Icons.trending_up),
-                      _buildReportCard("Total Orders", totalOrders.toDouble(), Colors.orange, Icons.shopping_cart, isInteger: true),
-                    ],
-                  ),
-
-                  const SizedBox(height: 30),
-                  const Divider(),
-                  const SizedBox(height: 15),
-
-                  const Text("Inventory Health", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.all_inbox, size: 40, color: Colors.blueGrey),
-                      title: const Text("Total Boxes in Stock"),
-                      trailing: Text("$totalBoxes", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-
-                  const SizedBox(height: 30),
-                  const Divider(),
-                  const SizedBox(height: 15),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text("Period Reports", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                      ElevatedButton.icon(
-                        onPressed: _selectDateRange,
-                        icon: const Icon(Icons.date_range),
-                        label: Text(selectedDateRange == null 
-                          ? "Select Dates" 
-                          : "${DateFormat('MMM d').format(selectedDateRange!.start)} - ${DateFormat('MMM d').format(selectedDateRange!.end)}"),
-                        style: ElevatedButton.styleFrom(minimumSize: const Size(100, 40)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 15),
-                  if (selectedDateRange != null) ...[
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            _buildPeriodRow("Spending (Purchases)", periodSpending, Colors.red),
-                            const Divider(height: 20),
-                            _buildPeriodRow("Sales (Orders)", periodSales, Colors.green),
-                            const Divider(height: 20),
-                            _buildPeriodRow("Net Cash Flow", periodSales - periodSpending, 
-                              (periodSales - periodSpending) >= 0 ? Colors.green : Colors.red, isBold: true),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ] else ...[
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20.0),
-                        child: Text("Select a date range to see spending and sales.", style: TextStyle(color: Colors.grey)),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 40),
-                ],
-              ),
-            ),
     );
   }
 

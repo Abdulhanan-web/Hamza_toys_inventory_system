@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../database/database_helper.dart';
 import '../models/product.dart';
+import '../widgets/app_sidebar.dart';
 
 class ProductFormScreen extends StatefulWidget {
   final int userId;
@@ -246,168 +247,180 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          isEdit ? "Edit Product" : "Add Product",
-        ),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: SizedBox(
-          width: 700,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(25),
-            child: Card(
-              elevation: 5,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
+      body: Row(
+        children: [
+          AppSidebar(
+            userId: widget.userId,
+          ),
+          Expanded(
+            child: Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  isEdit ? "Edit Product" : "Add Product",
+                ),
+                centerTitle: true,
+                automaticallyImplyLeading: false,
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(25),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Icon(
-                        isEdit ? Icons.edit : Icons.inventory_2,
-                        color: Colors.blue,
-                        size: 70,
+              body: Center(
+                child: SizedBox(
+                  width: 700,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(25),
+                    child: Card(
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
                       ),
-                      const SizedBox(height: 15),
-                      Text(
-                        isEdit ? "Edit Product" : "Add New Product",
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 35),
-                      buildField(
-                        label: "Product ID",
-                        controller: _productIdController,
-                      ),
-                      buildField(
-                        label: "Product Name",
-                        controller: _nameController,
-                      ),
-                      buildField(
-                        label: "Description",
-                        controller: _descriptionController,
-                        maxLines: 3,
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: buildField(
-                              label: "Number of Boxes",
-                              controller: _boxesController,
-                              keyboardType: TextInputType.number,
-                              validator: (value) => null, // Optional
-                            ),
-                          ),
-                          const SizedBox(width: 15),
-                          Expanded(
-                            child: buildField(
-                              label: "Loose Pieces",
-                              controller: _loosePiecesController,
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) return null;
-                                int loose = int.tryParse(value) ?? 0;
-                                int qpb = int.tryParse(_quantityPerBoxController.text) ?? 0;
-                                // Loose pieces should not be greater than or equal to quantity per box
-                                if (qpb > 0 && loose >= qpb) {
-                                  return "Must be < Qty/Box";
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      buildField(
-                        label: "Quantity Per Box",
-                        controller: _quantityPerBoxController,
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          // Only required if boxes are entered
-                          int boxes = int.tryParse(_boxesController.text) ?? 0;
-                          if (boxes > 0) {
-                            if (value == null || value.trim().isEmpty) {
-                              return "Quantity Per Box is required when adding boxes";
-                            }
-                            int? q = int.tryParse(value);
-                            if (q == null || q <= 0) {
-                              return "Must be greater than 0";
-                            }
-                          }
-                          return null;
-                        },
-                      ),
-                      buildField(
-                        label: "Purchase Price",
-                        controller: _purchasePriceController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                      ),
-                      buildField(
-                        label: "Arrival Date",
-                        controller: _arrivalDateController,
-                        readOnly: true,
-                        onTap: _pickArrivalDate,
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.calendar_month),
-                          onPressed: _pickArrivalDate,
-                        ),
-                      ),
-                      const SizedBox(height: 25),
-                      SizedBox(
-                        height: 55,
-                        child: ElevatedButton.icon(
-                          onPressed: _isLoading ? null : _saveProduct,
-                          icon: _isLoading
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : Icon(
-                                  isEdit ? Icons.save : Icons.add,
+                      child: Padding(
+                        padding: const EdgeInsets.all(25),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Icon(
+                                isEdit ? Icons.edit : Icons.inventory_2,
+                                color: Colors.blue,
+                                size: 70,
+                              ),
+                              const SizedBox(height: 15),
+                              Text(
+                                isEdit ? "Edit Product" : "Add New Product",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                          label: Text(
-                            _isLoading
-                                ? "Please wait..."
-                                : (isEdit ? "Update Product" : "Add Product"),
-                            style: const TextStyle(
-                              fontSize: 18,
-                            ),
+                              ),
+                              const SizedBox(height: 35),
+                              buildField(
+                                label: "Product ID",
+                                controller: _productIdController,
+                              ),
+                              buildField(
+                                label: "Product Name",
+                                controller: _nameController,
+                              ),
+                              buildField(
+                                label: "Description",
+                                controller: _descriptionController,
+                                maxLines: 3,
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: buildField(
+                                      label: "Number of Boxes",
+                                      controller: _boxesController,
+                                      keyboardType: TextInputType.number,
+                                      validator: (value) => null, // Optional
+                                    ),
+                                  ),
+                                  const SizedBox(width: 15),
+                                  Expanded(
+                                    child: buildField(
+                                      label: "Loose Pieces",
+                                      controller: _loosePiecesController,
+                                      keyboardType: TextInputType.number,
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) return null;
+                                        int loose = int.tryParse(value) ?? 0;
+                                        int qpb = int.tryParse(_quantityPerBoxController.text) ?? 0;
+                                        // Loose pieces should not be greater than or equal to quantity per box
+                                        if (qpb > 0 && loose >= qpb) {
+                                          return "Must be < Qty/Box";
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              buildField(
+                                label: "Quantity Per Box",
+                                controller: _quantityPerBoxController,
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  // Only required if boxes are entered
+                                  int boxes = int.tryParse(_boxesController.text) ?? 0;
+                                  if (boxes > 0) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return "Quantity Per Box is required when adding boxes";
+                                    }
+                                    int? q = int.tryParse(value);
+                                    if (q == null || q <= 0) {
+                                      return "Must be greater than 0";
+                                    }
+                                  }
+                                  return null;
+                                },
+                              ),
+                              buildField(
+                                label: "Purchase Price",
+                                controller: _purchasePriceController,
+                                keyboardType: const TextInputType.numberWithOptions(
+                                  decimal: true,
+                                ),
+                              ),
+                              buildField(
+                                label: "Arrival Date",
+                                controller: _arrivalDateController,
+                                readOnly: true,
+                                onTap: _pickArrivalDate,
+                                suffixIcon: IconButton(
+                                  icon: const Icon(Icons.calendar_month),
+                                  onPressed: _pickArrivalDate,
+                                ),
+                              ),
+                              const SizedBox(height: 25),
+                              SizedBox(
+                                height: 55,
+                                child: ElevatedButton.icon(
+                                  onPressed: _isLoading ? null : _saveProduct,
+                                  icon: _isLoading
+                                      ? const SizedBox(
+                                          width: 22,
+                                          height: 22,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : Icon(
+                                          isEdit ? Icons.save : Icons.add,
+                                        ),
+                                  label: Text(
+                                    _isLoading
+                                        ? "Please wait..."
+                                        : (isEdit ? "Update Product" : "Add Product"),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (isEdit) ...[
+                                const SizedBox(height: 15),
+                                SizedBox(
+                                  height: 50,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () => Navigator.pop(context),
+                                    icon: const Icon(Icons.close),
+                                    label: const Text("Cancel"),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ),
-                      if (isEdit) ...[
-                        const SizedBox(height: 15),
-                        SizedBox(
-                          height: 50,
-                          child: OutlinedButton.icon(
-                            onPressed: () => Navigator.pop(context),
-                            icon: const Icon(Icons.close),
-                            label: const Text("Cancel"),
-                          ),
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
