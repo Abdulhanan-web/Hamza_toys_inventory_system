@@ -26,7 +26,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   Future<void> loadBatches() async {
     final list = await DatabaseHelper.instance.getBatchesForProduct(widget.product.id!);
     setState(() {
-      batches = list;
+      // Filter out batches with zero or less remaining stock
+      batches = list.where((batch) => batch.quantityRemaining > 0).toList();
       isLoading = false;
     });
   }
@@ -95,7 +96,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : batches.isEmpty
-                            ? const Text("No batches found.")
+                            ? const Text("No active stock batches found.")
                             : ListView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
@@ -106,10 +107,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                     margin: const EdgeInsets.only(bottom: 12),
                                     child: ListTile(
                                       leading: CircleAvatar(
-                                        backgroundColor: batch.quantityRemaining > 0 ? Colors.green.shade100 : Colors.red.shade100,
-                                        child: Icon(
-                                          batch.quantityRemaining > 0 ? Icons.inventory : Icons.inventory_2_outlined,
-                                          color: batch.quantityRemaining > 0 ? Colors.green : Colors.red,
+                                        backgroundColor: Colors.green.shade100,
+                                        child: const Icon(
+                                          Icons.inventory,
+                                          color: Colors.green,
                                         ),
                                       ),
                                       title: Text("Arrival: ${batch.purchaseDate}"),
@@ -120,9 +121,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                         children: [
                                           Text(
                                             "${batch.quantityRemaining} Remaining",
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              color: batch.quantityRemaining > 0 ? Colors.green : Colors.red,
+                                              color: Colors.green,
                                             ),
                                           ),
                                           Text("Purchased: ${batch.quantityPurchased}"),

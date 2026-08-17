@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
           loadProducts();
         },
         child: Padding(
-          padding: const EdgeInsets.all(15),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -128,18 +128,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
                 product.description,
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 16,
                   color: Colors.black87,
-                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   const Icon(Icons.inventory_2, size: 16, color: Colors.blueGrey),
@@ -147,24 +146,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: Text(
                       "Stock: ${product.fullBoxes} Boxes, ${product.loosePieces} Pieces",
-                      style: const TextStyle(fontSize: 14),
+                      style: const TextStyle(fontSize: 15),
                     ),
                   )
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Row(
                 children: [
                   const Icon(Icons.category, size: 16, color: Colors.blueGrey),
                   const SizedBox(width: 8),
                   Text(
                     "Qty/Box: ${product.quantityPerBox}",
-                    style: const TextStyle(fontSize: 14),
+                    style: const TextStyle(fontSize: 15),
                   )
                 ],
               ),
               const Spacer(),
-              const Divider(),
+              const Divider(height: 16),
               Row(
                 children: [
                   Expanded(
@@ -184,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
-                        minimumSize: const Size(0, 36),
+                        minimumSize: const Size(0, 42),
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -192,13 +191,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: const Text(
                         "Restock",
-                        style: TextStyle(fontSize: 12),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 13),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 4),
                   Expanded(
                     flex: 2,
                     child: ElevatedButton(
@@ -217,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
-                        minimumSize: const Size(0, 36),
+                        minimumSize: const Size(0, 42),
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -225,13 +222,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: const Text(
                         "Edit",
-                        style: TextStyle(fontSize: 12),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 13),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 4),
                   Expanded(
                     flex: 2,
                     child: ElevatedButton(
@@ -239,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
-                        minimumSize: const Size(0, 36),
+                        minimumSize: const Size(0, 42),
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -247,9 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: const Text(
                         "Delete",
-                        style: TextStyle(fontSize: 12),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 13),
                       ),
                     ),
                   ),
@@ -343,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   crossAxisCount: 3,
                                   crossAxisSpacing: 20,
                                   mainAxisSpacing: 20,
-                                  childAspectRatio: 1.2,
+                                  childAspectRatio: 1.3,
                                 ),
                                 itemCount: products.length,
                                 itemBuilder: (context, index) {

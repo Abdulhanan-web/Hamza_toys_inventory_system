@@ -95,8 +95,24 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
       return;
     }
 
+    // STOCK CHECK
+    int totalRequested = (boxes * qpb) + loose;
+    int piecesInCart = orderItems
+        .where((item) => item.productId == selectedProduct!.id)
+        .fold(0, (sum, item) => sum + (item.boxes * item.quantityPerBox) + item.loosePieces);
+
+    if (piecesInCart + totalRequested > selectedProduct!.totalPieces) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Insufficient stock! Available: ${selectedProduct!.totalPieces}, Already in cart: $piecesInCart"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     // Calculation based on total pieces
-    double itemTotal = ((boxes * qpb) + loose) * price;
+    double itemTotal = totalRequested * price;
 
     final newItem = OrderItem(
       orderId: 0, 
@@ -223,6 +239,16 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                           },
                           decoration: const InputDecoration(labelText: "Product", border: OutlineInputBorder()),
                         ),
+                        if (selectedProduct != null) ...[
+                          const SizedBox(height: 5),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                            child: Text(
+                              "Stock: ${selectedProduct!.totalPieces} pcs (${selectedProduct!.fullBoxes} boxes, ${selectedProduct!.loosePieces} loose)",
+                              style: const TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 10),
                         Row(
                           children: [
