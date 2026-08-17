@@ -128,6 +128,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
                 ],
               ),
+              const SizedBox(height: 6),
+              Text(
+                product.description,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -135,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      "Stock: ${product.fullBoxes} B, ${product.loosePieces} P",
+                      "Stock: ${product.fullBoxes} Boxes, ${product.loosePieces} Pieces",
                       style: const TextStyle(fontSize: 14),
                     ),
                   )
@@ -155,43 +166,92 @@ class _HomeScreenState extends State<HomeScreen> {
               const Spacer(),
               const Divider(),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AddStockScreen(product: product),
-                        ),
-                      );
-                      if (result == true) {
-                        loadProducts();
-                      }
-                    },
-                    icon: const Icon(Icons.add_shopping_cart, color: Colors.green),
-                    tooltip: "Add Stock",
-                  ),
-                  IconButton(
-                    onPressed: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ProductFormScreen(
-                            userId: widget.userId,
-                            product: product,
+                  Expanded(
+                    flex: 3,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AddStockScreen(product: product),
                           ),
+                        );
+                        if (result == true) {
+                          loadProducts();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(0, 36),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      );
-                      loadProducts();
-                    },
-                    icon: const Icon(Icons.edit, color: Colors.blue),
-                    tooltip: "Edit Product",
+                      ),
+                      child: const Text(
+                        "Restock",
+                        style: TextStyle(fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ),
-                  IconButton(
-                    onPressed: () => deleteProduct(product),
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    tooltip: "Delete Product",
+                  const SizedBox(width: 6),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ProductFormScreen(
+                              userId: widget.userId,
+                              product: product,
+                            ),
+                          ),
+                        );
+                        loadProducts();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(0, 36),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        "Edit",
+                        style: TextStyle(fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: () => deleteProduct(product),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(0, 36),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        "Delete",
+                        style: TextStyle(fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ),
                 ],
               )
@@ -238,27 +298,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: TextStyle(color: Colors.grey, fontSize: 16),
                           ),
                         ],
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ProductFormScreen(userId: widget.userId),
-                            ),
-                          );
-                          loadProducts();
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text("New Product"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.indigo,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(180, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
                       ),
                     ],
                   ),
