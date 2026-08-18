@@ -17,16 +17,13 @@ class ClientListScreen extends StatefulWidget {
 class _ClientListScreenState extends State<ClientListScreen> {
   List<Client> clients = [];
   List<Client> filteredClients = [];
-
   bool isLoading = true;
-
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     loadClients();
-
     _searchController.addListener(() {
       searchClients(_searchController.text);
     });
@@ -40,7 +37,6 @@ class _ClientListScreenState extends State<ClientListScreen> {
 
   Future<void> loadClients() async {
     final list = await DatabaseHelper.instance.getClients(widget.userId);
-
     setState(() {
       clients = list;
       filteredClients = list;
@@ -50,7 +46,6 @@ class _ClientListScreenState extends State<ClientListScreen> {
 
   void searchClients(String keyword) {
     final query = keyword.toLowerCase();
-
     setState(() {
       filteredClients = clients.where((client) {
         return client.name.toLowerCase().contains(query) ||
@@ -66,23 +61,15 @@ class _ClientListScreenState extends State<ClientListScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text("Delete Client"),
-          content: Text(
-            "Are you sure you want to delete '${client.name}'?",
-          ),
+          content: Text("Are you sure you want to delete '${client.name}'?"),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context, false);
-              },
+              onPressed: () => Navigator.pop(context, false),
               child: const Text("Cancel"),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
-              onPressed: () {
-                Navigator.pop(context, true);
-              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () => Navigator.pop(context, true),
               child: const Text("Delete"),
             ),
           ],
@@ -91,188 +78,166 @@ class _ClientListScreenState extends State<ClientListScreen> {
     );
 
     if (confirm != true) return;
-
     await DatabaseHelper.instance.deleteClient(client.id!);
-
     loadClients();
-
     if (!mounted) return;
-
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          "Client deleted successfully.",
-        ),
-      ),
+      const SnackBar(content: Text("Client deleted successfully.")),
     );
   }
 
   Widget buildClientCard(Client client) {
     return Card(
-      elevation: 3,
-      margin: const EdgeInsets.only(bottom: 18),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CircleAvatar(
-                  radius: 26,
-                  child: Icon(Icons.person),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
                         client.name,
                         style: const TextStyle(
-                          fontSize: 22,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: Colors.indigo,
                         ),
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        "Client ID : ${client.clientId}",
-                        style: const TextStyle(
-                          color: Colors.grey,
-                        ),
+                    ),
+                    Text(
+                      "ID: ${client.clientId}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+                const Divider(height: 24),
+                _infoRow(Icons.phone_outlined, client.phone),
+                const SizedBox(height: 8),
+                _infoRow(Icons.location_on_outlined, client.address),
+                const SizedBox(height: 8),
+                _infoRow(
+                  Icons.account_balance_wallet_outlined,
+                  "Balance: Rs. ${client.balance.toStringAsFixed(2)}",
+                  textColor: Colors.red[700],
+                  isBold: true,
+                ),
+                const SizedBox(height: 8),
+                _infoRow(Icons.notes_outlined, client.notes.isEmpty ? "No notes" : client.notes),
+                const SizedBox(height: 8),
+                _infoRow(Icons.calendar_today_outlined, "Added: ${client.createdAt}"),
               ],
             ),
-            const Divider(height: 30),
-            Row(
+          ),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
               children: [
-                const Icon(Icons.phone, size: 18),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(client.phone),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.location_on, size: 18),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(client.address),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                const Icon(
-                  Icons.account_balance_wallet,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  "Balance : Rs. ${client.balance.toStringAsFixed(2)}",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.notes, size: 18),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    client.notes.isEmpty ? "No notes" : client.notes,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                const Icon(
-                  Icons.calendar_today,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(client.createdAt),
-              ],
-            ),
-            const SizedBox(height: 25),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                ElevatedButton.icon(
+                _actionButton(
+                  label: "Pay",
+                  color: Colors.green,
                   onPressed: () async {
                     final result = await Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => PaymentFormScreen(client: client),
-                      ),
+                      MaterialPageRoute(builder: (_) => PaymentFormScreen(client: client)),
                     );
-                    if (result == true) {
-                      loadClients();
-                    }
+                    if (result == true) loadClients();
                   },
-                  icon: const Icon(Icons.add_card),
-                  label: const Text("Pay"),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
                 ),
-                ElevatedButton.icon(
+                _actionButton(
+                  label: "History",
+                  color: Colors.amber[700]!,
                   onPressed: () async {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => PaymentHistoryScreen(
-                          userId: widget.userId,
-                          client: client,
-                        ),
+                        builder: (_) => PaymentHistoryScreen(userId: widget.userId, client: client),
                       ),
                     );
                   },
-                  icon: const Icon(Icons.history),
-                  label: const Text("History"),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
                 ),
-                OutlinedButton.icon(
+                _actionButton(
+                  label: "Edit",
+                  color: Colors.blue,
                   onPressed: () async {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ClientFormScreen(
-                          userId: widget.userId,
-                          client: client,
-                        ),
+                        builder: (_) => ClientFormScreen(userId: widget.userId, client: client),
                       ),
                     );
                     loadClients();
                   },
-                  icon: const Icon(Icons.edit),
-                  label: const Text("Edit"),
                 ),
-                OutlinedButton.icon(
+                _actionButton(
+                  label: "Delete",
+                  color: Colors.red,
                   onPressed: () => deleteClient(client),
-                  icon: const Icon(Icons.delete),
-                  label: const Text("Delete"),
-                  style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
                 ),
               ],
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow(IconData icon, String text, {Color? textColor, bool isBold = false}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: Colors.grey[600]),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              color: textColor ?? Colors.black87,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _actionButton({
+    required String label,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: SizedBox(
+          height: 32,
+          child: ElevatedButton(
+            onPressed: onPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              elevation: 0,
+            ),
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ),
         ),
       ),
     );
@@ -293,6 +258,9 @@ class _ClientListScreenState extends State<ClientListScreen> {
               appBar: AppBar(
                 title: const Text("Clients"),
                 centerTitle: true,
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.black,
                 automaticallyImplyLeading: false,
                 actions: [
                   IconButton(
@@ -305,9 +273,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
                 onPressed: () async {
                   await Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => ClientFormScreen(userId: widget.userId),
-                    ),
+                    MaterialPageRoute(builder: (_) => ClientFormScreen(userId: widget.userId)),
                   );
                   loadClients();
                 },
@@ -321,55 +287,34 @@ class _ClientListScreenState extends State<ClientListScreen> {
                     TextField(
                       controller: _searchController,
                       decoration: InputDecoration(
-                        hintText: "Search by name, phone or client ID...",
+                        hintText: "Search by name, phone or ID...",
                         prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  searchClients("");
-                                },
-                              )
-                            : null,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                       ),
                     ),
                     const SizedBox(height: 20),
                     Expanded(
                       child: isLoading
-                          ? const Center(
-                              child: CircularProgressIndicator(),
-                            )
+                          ? const Center(child: CircularProgressIndicator())
                           : filteredClients.isEmpty
                               ? Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: const [
-                                      Icon(
-                                        Icons.people_outline,
-                                        size: 80,
-                                        color: Colors.grey,
-                                      ),
+                                      Icon(Icons.people_outline, size: 80, color: Colors.grey),
                                       SizedBox(height: 15),
-                                      Text(
-                                        "No Clients Found",
-                                        style: TextStyle(
-                                          fontSize: 22,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
+                                      Text("No Clients Found",
+                                          style: TextStyle(fontSize: 22, color: Colors.grey)),
                                     ],
                                   ),
                                 )
                               : ListView.builder(
                                   itemCount: filteredClients.length,
                                   itemBuilder: (context, index) {
-                                    return buildClientCard(
-                                      filteredClients[index],
-                                    );
+                                    return buildClientCard(filteredClients[index]);
                                   },
                                 ),
                     ),
