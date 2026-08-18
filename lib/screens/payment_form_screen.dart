@@ -102,8 +102,12 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         validator: (value) {
                           if (value == null || value.isEmpty) return "Please enter amount";
-                          if (double.tryParse(value) == null) return "Enter a valid number";
-                          if (double.parse(value) <= 0) return "Amount must be greater than 0";
+                          final amount = double.tryParse(value);
+                          if (amount == null) return "Enter a valid number";
+                          if (amount <= 0) return "Amount must be greater than 0";
+                          if (amount > widget.client.balance) {
+                            return "Amount cannot exceed balance (Rs. ${widget.client.balance.toStringAsFixed(2)})";
+                          }
                           return null;
                         },
                       ),

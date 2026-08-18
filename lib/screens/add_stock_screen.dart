@@ -46,7 +46,7 @@ class _AddStockScreenState extends State<AddStockScreen> {
       int boxes = int.tryParse(_boxesController.text) ?? 0;
       int pieces = int.tryParse(_piecesController.text) ?? 0;
       int totalNewPieces = (boxes * widget.product.quantityPerBox) + pieces;
-      double newPrice = double.parse(_priceController.text);
+      double newPrice = double.tryParse(_priceController.text) ?? 0.0;
       String date = _dateController.text;
 
       if (totalNewPieces <= 0) {
@@ -72,6 +72,7 @@ class _AddStockScreenState extends State<AddStockScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: Row(
         children: [
           AppSidebar(
@@ -79,90 +80,162 @@ class _AddStockScreenState extends State<AddStockScreen> {
             currentPage: "dashboard",
           ),
           Expanded(
-            child: Scaffold(
-              appBar: AppBar(
-                title: Text("Add Stock: ${widget.product.name}"),
-                automaticallyImplyLeading: true,
-              ),
-              body: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Current Stock: ${widget.product.fullBoxes} Boxes, ${widget.product.loosePieces} Pieces",
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _boxesController,
-                              decoration: const InputDecoration(
-                                labelText: "Boxes to Add",
-                                border: OutlineInputBorder(),
-                              ),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                          const SizedBox(width: 15),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _piecesController,
-                              decoration: const InputDecoration(
-                                labelText: "Extra Pieces",
-                                border: OutlineInputBorder(),
-                              ),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      TextFormField(
-                        controller: _priceController,
-                        decoration: const InputDecoration(
-                          labelText: "New Purchase Price (per piece)",
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.currency_rupee),
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) return "Required";
-                          if (double.tryParse(value) == null) return "Invalid price";
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      TextFormField(
-                        controller: _dateController,
-                        decoration: InputDecoration(
-                          labelText: "Arrival Date",
-                          border: const OutlineInputBorder(),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.calendar_today),
-                            onPressed: _selectDate,
-                          ),
-                        ),
-                        readOnly: true,
-                        onTap: _selectDate,
-                      ),
-                      const SizedBox(height: 30),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: _save,
-                          child: const Text("Add Stock", style: TextStyle(fontSize: 18)),
-                        ),
-                      ),
-                    ],
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 20,
+                  left: 20,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.pop(context),
+                    color: Colors.blueGrey,
                   ),
                 ),
-              ),
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1100),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                      child: Container(
+                        padding: const EdgeInsets.all(35),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.grey.shade200),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.02),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                widget.product.name,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueGrey,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                "Current Stock: ${widget.product.fullBoxes} Bx, ${widget.product.loosePieces} Pcs",
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 25),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _boxesController,
+                                      decoration: InputDecoration(
+                                        labelText: "Boxes to Add",
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.grey[50],
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 15),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _piecesController,
+                                      decoration: InputDecoration(
+                                        labelText: "Extra Pieces",
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.grey[50],
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              TextFormField(
+                                controller: _priceController,
+                                decoration: InputDecoration(
+                                  labelText: "New Purchase Price (per piece)",
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.grey[50],
+                                  prefixIcon: const Icon(Icons.currency_rupee),
+                                ),
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) return "Required";
+                                  if (double.tryParse(value) == null) return "Invalid price";
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 20),
+                              TextFormField(
+                                controller: _dateController,
+                                decoration: InputDecoration(
+                                  labelText: "Arrival Date",
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.grey[50],
+                                  suffixIcon: const Icon(Icons.calendar_today),
+                                ),
+                                readOnly: true,
+                                onTap: _selectDate,
+                              ),
+                              const SizedBox(height: 35),
+                              SizedBox(
+                                height: 55,
+                                child: ElevatedButton(
+                                  onPressed: _save,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    "Add Stock",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text(
+                                  "Cancel",
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
