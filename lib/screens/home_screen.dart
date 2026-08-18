@@ -90,167 +90,200 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget buildProductCard(Product product) {
+    final bool isOutOfStock = product.totalPieces == 0;
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(15),
-        onTap: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ProductDetailsScreen(product: product),
-            ),
-          );
-          loadProducts();
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      product.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                product.description,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.black87,
+      child: Stack(
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(15),
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProductDetailsScreen(product: product),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Row(
+              );
+              loadProducts();
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.inventory_2, size: 16, color: Colors.blueGrey),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      "Stock: ${product.fullBoxes} Boxes, ${product.loosePieces} Pieces",
-                      style: const TextStyle(fontSize: 15),
-                    ),
-                  )
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.category, size: 16, color: Colors.blueGrey),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Qty/Box: ${product.quantityPerBox}",
-                    style: const TextStyle(fontSize: 15),
-                  )
-                ],
-              ),
-              const Spacer(),
-              const Divider(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AddStockScreen(product: product),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          product.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
-                        );
-                        if (result == true) {
-                          loadProducts();
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(0, 42),
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text(
-                        "Restock",
-                        style: TextStyle(fontSize: 13),
-                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    product.description,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ProductFormScreen(
-                              userId: widget.userId,
-                              product: product,
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.inventory_2,
+                        size: 16,
+                        color: isOutOfStock ? Colors.red : Colors.blueGrey,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "Stock: ${product.fullBoxes} Boxes, ${product.loosePieces} Pieces",
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: isOutOfStock ? Colors.red : Colors.black87,
+                            fontWeight: isOutOfStock ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.category, size: 16, color: Colors.blueGrey),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Qty/Box: ${product.quantityPerBox}",
+                        style: const TextStyle(fontSize: 15),
+                      )
+                    ],
+                  ),
+                  const Spacer(),
+                  const Divider(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => AddStockScreen(product: product),
+                              ),
+                            );
+                            if (result == true) {
+                              loadProducts();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(0, 42),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                        );
-                        loadProducts();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(0, 42),
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          child: const Text(
+                            "Restock",
+                            style: TextStyle(fontSize: 13),
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        "Edit",
-                        style: TextStyle(fontSize: 13),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: () => deleteProduct(product),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(0, 42),
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProductFormScreen(
+                                  userId: widget.userId,
+                                  product: product,
+                                ),
+                              ),
+                            );
+                            loadProducts();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(0, 42),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            "Edit",
+                            style: TextStyle(fontSize: 13),
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        "Delete",
-                        style: TextStyle(fontSize: 13),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: () => deleteProduct(product),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(0, 42),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            "Delete",
+                            style: TextStyle(fontSize: 13),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    ],
+                  )
                 ],
-              )
-            ],
+              ),
+            ),
           ),
-        ),
+          if (isOutOfStock)
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  "OUT OF STOCK",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
