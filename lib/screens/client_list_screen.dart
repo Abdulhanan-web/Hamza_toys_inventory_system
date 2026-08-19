@@ -277,8 +277,15 @@ class _ClientListScreenState extends State<ClientListScreen> {
                   );
                   loadClients();
                 },
-                icon: const Icon(Icons.person_add),
-                label: const Text("Add Client"),
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                extendedPadding: const EdgeInsets.symmetric(horizontal: 32),
+                label: const Text(
+                  "Add Client",
+                  style: TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
               ),
               body: Padding(
                 padding: const EdgeInsets.all(20),

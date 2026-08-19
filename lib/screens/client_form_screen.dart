@@ -106,45 +106,32 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     bool readOnly = false,
     VoidCallback? onTap,
     Widget? suffixIcon,
-    bool isOptional = false,
+    String? Function(String?)? validator,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.only(bottom: 20),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines,
         readOnly: readOnly,
         onTap: onTap,
-        validator: (value) {
-          if (!isOptional && (value == null || value.trim().isEmpty)) {
+        validator: validator ?? (value) {
+          if (value == null || value.trim().isEmpty) {
             return "$label is required";
           }
-
-          if (value != null && value.trim().isNotEmpty) {
-            if (label == "Phone Number") {
-              if (value.length < 11) {
-                return "Enter valid phone number";
-              }
-            }
-
-            if (label == "Balance") {
-              if (double.tryParse(value) == null) {
-                return "Enter valid balance";
-              }
-            }
-          }
-
           return null;
         },
         decoration: InputDecoration(
           labelText: label,
-          filled: readOnly,
-          fillColor: readOnly ? Colors.grey.shade100 : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          labelStyle: const TextStyle(fontSize: 14),
           suffixIcon: suffixIcon,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          filled: true,
+          fillColor: Colors.grey[50],
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
       ),
     );
@@ -190,33 +177,27 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
       );
 
       Navigator.pop(context, true);
-    } catch (e, stackTrace) {
-      debugPrint("========== CLIENT ERROR ==========");
-      debugPrint(e.toString());
-
-      debugPrint("========== STACK TRACE ==========");
-      debugPrint(stackTrace.toString());
-
+    } catch (e) {
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.red,
           content: Text("Error: $e"),
         ),
       );
-    }
-
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: Row(
         children: [
           AppSidebar(
@@ -225,148 +206,158 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
           ),
           Expanded(
             child: Scaffold(
-              appBar: AppBar(
-                title: Text(
-                  isEdit ? "Edit Client" : "Add Client",
-                ),
-                centerTitle: true,
-                automaticallyImplyLeading: !isEdit,
-              ),
-              body: Center(
-                child: SizedBox(
-                  width: 700,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(25),
-                    child: Card(
-                      elevation: 5,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(25),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.stretch,
-                            children: [
-                              Icon(
-                                isEdit
-                                    ? Icons.person
-                                    : Icons.person_add,
-                                color: Colors.blue,
-                                size: 70,
+              backgroundColor: Colors.transparent,
+              body: Stack(
+                children: [
+                  Positioned(
+                    top: 20,
+                    left: 20,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.pop(context),
+                      color: Colors.blueGrey,
+                    ),
+                  ),
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1100),
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                        child: Container(
+                          padding: const EdgeInsets.all(35),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey.shade200),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.02),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
-                              const SizedBox(height: 15),
-                              Text(
-                                isEdit
-                                    ? "Edit Client"
-                                    : "Add New Client",
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 35),
-                              buildField(
-                                label: "Client ID",
-                                controller: _clientIdController,
-                                readOnly: true,
-                              ),
-                              buildField(
-                                label: "Client Name",
-                                controller: _nameController,
-                              ),
-                              buildField(
-                                label: "Phone Number",
-                                controller: _phoneController,
-                                keyboardType: TextInputType.phone,
-                              ),
-                              buildField(
-                                label: "Address",
-                                controller: _addressController,
-                                maxLines: 3,
-                              ),
-                              buildField(
-                                label: "Balance",
-                                controller: _balanceController,
-                                keyboardType:
-                                const TextInputType.numberWithOptions(
-                                  decimal: true,
-                                ),
-                              ),
-                              buildField(
-                                label: "Notes",
-                                controller: _notesController,
-                                maxLines: 4,
-                                isOptional: true,
-                              ),
-                              buildField(
-                                label: "Created Date",
-                                controller: _createdAtController,
-                                readOnly: true,
-                                onTap: _pickDate,
-                                suffixIcon: IconButton(
-                                  icon: const Icon(
-                                    Icons.calendar_month,
-                                  ),
-                                  onPressed: _pickDate,
-                                ),
-                              ),
-                              const SizedBox(height: 25),
-                              SizedBox(
-                                height: 55,
-                                child: ElevatedButton.icon(
-                                  onPressed:
-                                  _isLoading ? null : _saveClient,
-                                  icon: _isLoading
-                                      ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child:
-                                    CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                      : Icon(
-                                    isEdit
-                                        ? Icons.save
-                                        : Icons.person_add,
-                                  ),
-                                  label: Text(
-                                    _isLoading
-                                        ? "Please wait..."
-                                        : (isEdit
-                                        ? "Update Client"
-                                        : "Add Client"),
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              if (isEdit) ...[
-                                const SizedBox(height: 15),
-                                SizedBox(
-                                  height: 50,
-                                  child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    icon: const Icon(Icons.close),
-                                    label: const Text("Cancel"),
-                                  ),
-                                ),
-                              ],
                             ],
+                          ),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text(
+                                  isEdit ? "Update Client" : "New Client",
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.blueGrey,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 30),
+                                buildField(
+                                  label: "Client ID",
+                                  controller: _clientIdController,
+                                  readOnly: true,
+                                ),
+                                buildField(
+                                  label: "Client Name",
+                                  controller: _nameController,
+                                ),
+                                buildField(
+                                  label: "Phone Number",
+                                  controller: _phoneController,
+                                  keyboardType: TextInputType.phone,
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return "Phone number is required";
+                                    }
+                                    if (value.trim().length < 11) {
+                                      return "Enter valid phone number";
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                buildField(
+                                  label: "Address",
+                                  controller: _addressController,
+                                  maxLines: 2,
+                                ),
+                                buildField(
+                                  label: "Opening Balance",
+                                  controller: _balanceController,
+                                  keyboardType: const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return "Balance is required";
+                                    }
+                                    if (double.tryParse(value) == null) {
+                                      return "Enter valid balance";
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                buildField(
+                                  label: "Notes",
+                                  controller: _notesController,
+                                  maxLines: 2,
+                                  validator: (value) => null,
+                                ),
+                                buildField(
+                                  label: "Created Date",
+                                  controller: _createdAtController,
+                                  readOnly: true,
+                                  onTap: _pickDate,
+                                  suffixIcon: const Icon(Icons.calendar_today, size: 20),
+                                ),
+                                const SizedBox(height: 10),
+                                SizedBox(
+                                  height: 55,
+                                  child: ElevatedButton(
+                                    onPressed: _isLoading ? null : _saveClient,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue,
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    child: _isLoading
+                                        ? const SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : Text(
+                                            isEdit ? "Update Client" : "Add Client",
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                                if (isEdit) ...[
+                                  const SizedBox(height: 12),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text(
+                                      "Cancel",
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
