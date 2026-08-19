@@ -488,9 +488,11 @@ class DatabaseHelper {
           WHERE id = ?
         ''', [totalSold, item.productId]);
       }
+      
+      // Overwrite the client balance with the order's remaining amount (which includes previous balance)
       await txn.rawUpdate('''
         UPDATE clients 
-        SET balance = balance + ? 
+        SET balance = ? 
         WHERE id = ?
       ''', [order.remainingAmount, order.clientId]);
     });
