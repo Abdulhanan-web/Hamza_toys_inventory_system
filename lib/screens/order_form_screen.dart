@@ -212,9 +212,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
 
     try {
       final orderNo = "ORD-${DateTime.now().millisecondsSinceEpoch}";
-      final previousBalance = selectedClient!.balance;
       final currentOrderTotal = grandTotal - discount;
-      final closingBalance = currentOrderTotal + previousBalance;
       
       final order = Order(
         userId: widget.userId,
@@ -223,12 +221,12 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
         orderDate: DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now()),
         grandTotal: currentOrderTotal,
         paidAmount: 0,
-        remainingAmount: closingBalance, // This is the Net Total / Closing Balance
+        remainingAmount: currentOrderTotal, // Fix: Only store this order's balance
         status: "Pending",
         remarks: _remarksController.text,
       );
 
-      // insertCompleteOrder is now updated to overwrite client balance with order.remainingAmount
+      // insertCompleteOrder increments the client balance by order.grandTotal
       await DatabaseHelper.instance.insertCompleteOrder(order, orderItems);
 
       if (mounted) {

@@ -324,12 +324,12 @@ class DatabaseHelper {
         [payment.amount, payment.clientId],
       );
 
-      // 3. Distribute payment across pending orders
+      // 3. Distribute payment across pending orders (FIFO)
       double remainingPayment = payment.amount;
 
-      // Get orders for this client that are not fully paid, oldest first
+      // Get orders for this client that are not fully paid, oldest first (using id as primary sort for FIFO)
       final List<Map<String, dynamic>> pendingOrders = await txn.rawQuery(
-        "SELECT * FROM orders WHERE clientId = ? AND remainingAmount > 0 ORDER BY orderDate ASC",
+        "SELECT * FROM orders WHERE clientId = ? AND remainingAmount > 0 ORDER BY id ASC",
         [payment.clientId],
       );
 
@@ -343,7 +343,7 @@ class DatabaseHelper {
 
         double newPaidAmount = order.paidAmount + amountToApply;
         double newRemainingAmount = order.remainingAmount - amountToApply;
-        String newStatus = newRemainingAmount == 0 ? "Paid" : "Partially Paid";
+        String newStatus = newRemainingAmount <= 0 ? "Paid" : "Partially Paid";
 
         await txn.update(
           "orders",
@@ -489,12 +489,12 @@ class DatabaseHelper {
         ''', [totalSold, item.productId]);
       }
       
-      // Overwrite the client balance with the order's remaining amount (which includes previous balance)
+      // Increment the client balance by the order's grand total
       await txn.rawUpdate('''
         UPDATE clients 
-        SET balance = ? 
+        SET balance = balance + ? 
         WHERE id = ?
-      ''', [order.remainingAmount, order.clientId]);
+      ''', [order.grandTotal, order.clientId]);
     });
   }
 
