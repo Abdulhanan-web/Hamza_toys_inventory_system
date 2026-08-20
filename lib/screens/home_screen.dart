@@ -23,12 +23,23 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Product> products = [];
+  List<Product> filteredProducts = [];
   bool isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     loadProducts();
+    _searchController.addListener(() {
+      searchProducts(_searchController.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> loadProducts() async {
@@ -36,7 +47,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       products = list;
+      filteredProducts = list;
       isLoading = false;
+    });
+  }
+
+  void searchProducts(String keyword) {
+    final query = keyword.toLowerCase();
+    setState(() {
+      filteredProducts = products.where((product) {
+        return product.name.toLowerCase().contains(query) ||
+            product.description.toLowerCase().contains(query);
+      }).toList();
     });
   }
 
@@ -328,6 +350,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   
+                  const SizedBox(height: 20),
+
+                  // Search Bar
+                  TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: "Search products by name or description...",
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                    ),
+                  ),
+
                   const SizedBox(height: 30),
                   
                   const Text(
@@ -343,20 +382,24 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? const Center(
                             child: CircularProgressIndicator(),
                           )
-                        : products.isEmpty
-                            ? const Center(
+                        : filteredProducts.isEmpty
+                            ? Center(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(
-                                      Icons.inventory_2_outlined,
+                                      _searchController.text.isEmpty
+                                          ? Icons.inventory_2_outlined
+                                          : Icons.search_off,
                                       size: 80,
                                       color: Colors.grey,
                                     ),
-                                    SizedBox(height: 15),
+                                    const SizedBox(height: 15),
                                     Text(
-                                      "No Products Added",
-                                      style: TextStyle(
+                                      _searchController.text.isEmpty
+                                          ? "No Products Added"
+                                          : "No matching products found",
+                                      style: const TextStyle(
                                         fontSize: 22,
                                         color: Colors.grey,
                                       ),
@@ -371,10 +414,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   mainAxisSpacing: 20,
                                   childAspectRatio: 1.3,
                                 ),
-                                itemCount: products.length,
+                                itemCount: filteredProducts.length,
                                 itemBuilder: (context, index) {
                                   return buildProductCard(
-                                    products[index],
+                                    filteredProducts[index],
                                   );
                                 },
                               ),
