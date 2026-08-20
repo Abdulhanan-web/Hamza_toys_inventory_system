@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
+import '../models/order.dart';
+import '../models/order_item.dart';
+import '../models/client.dart';
+import '../models/product.dart';
 import '../widgets/app_sidebar.dart';
+import 'invoice_screen.dart';
 
 class OrderListScreen extends StatefulWidget {
   final int userId;
+  final Client? filterClient;
 
-  const OrderListScreen({super.key, required this.userId});
+  const OrderListScreen({super.key, required this.userId, this.filterClient});
 
   @override
   State<OrderListScreen> createState() => _OrderListScreenState();
@@ -23,11 +29,73 @@ class _OrderListScreenState extends State<OrderListScreen> {
 
   Future<void> _loadOrders() async {
     setState(() => isLoading = true);
-    final data = await DatabaseHelper.instance.getAllOrdersWithClients(widget.userId);
+    final allData = await DatabaseHelper.instance.getAllOrdersWithClients(widget.userId);
+    
     setState(() {
-      orders = data;
+      if (widget.filterClient != null) {
+        orders = allData.where((o) => o['clientId'] == widget.filterClient!.id).toList();
+      } else {
+        orders = allData;
+      }
       isLoading = false;
     });
+  }
+
+  Future<void> _viewInvoice(Map<String, dynamic> orderMap) async {
+    setState(() => isLoading = true);
+    try {
+      final order = Order.fromMap(orderMap);
+      final client = Client(
+        id: orderMap['clientId'],
+        userId: widget.userId,
+        clientId: "", 
+        name: orderMap['clientName'] ?? "Unknown",
+        phone: orderMap['phone'] ?? "",
+        address: orderMap['address'] ?? "",
+        balance: orderMap['currentClientBalance'] ?? 0.0,
+        notes: "",
+        createdAt: "",
+      );
+
+      final itemsData = await DatabaseHelper.instance.getOrderItems(order.id!);
+      final products = await DatabaseHelper.instance.getProducts(widget.userId);
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => InvoiceScreen(
+            order: order,
+            client: client,
+            items: itemsData,
+            products: products,
+            previousBalance: order.previousBalance,
+            discount: order.discount,
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error loading invoice: $e")));
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  Widget _buildDetailRow(String label, String value, {bool isBold = false, Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
+          Text(value, style: TextStyle(
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            color: color,
+          )),
+        ],
+      ),
+    );
   }
 
   Future<void> _viewOrderDetails(Map<String, dynamic> order) async {
@@ -38,53 +106,59 @@ class _OrderListScreenState extends State<OrderListScreen> {
     showDialog(
       context: context,
       builder: (context) {
+        double orderDiscount = (order['discount'] as num?)?.toDouble() ?? 0.0;
+        double subTotal = (order['totalAmount'] as num?)?.toDouble() ?? (order['grandTotal'] as num).toDouble();
+        
         return AlertDialog(
           title: Text("Order Details: ${order['orderNo']}"),
           content: SizedBox(
             width: double.maxFinite,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Client: ${order['clientName']}"),
-                Text("Date: ${order['orderDate']}"),
-                const Divider(),
-                const Text("Items:", style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Flexible(
-                  child: ListView.builder(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Client: ${order['clientName']}", style: const TextStyle(fontWeight: FontWeight.w600)),
+                  Text("Date: ${order['orderDate']}"),
+                  const Divider(),
+                  const Text("Items:", style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  ListView.builder(
                     shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: items.length,
                     itemBuilder: (context, index) {
                       final item = items[index];
                       return ListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text(item['name']),
-                        subtitle: Text("${item['boxes']} boxes x ${item['quantityPerBox']} qty, ${item['loosePieces']} loose pieces @ Rs.${item['sellingPrice']}"),
-                        trailing: Text("Rs.${item['totalPrice']}"),
+                        title: Text(item['name'], style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                        subtitle: Text("${item['boxes']} boxes x ${item['quantityPerBox']} qty, ${item['loosePieces']} loose pieces @ Rs.${item['sellingPrice']}", style: const TextStyle(fontSize: 12)),
+                        trailing: Text("Rs.${item['totalPrice']}", style: const TextStyle(fontWeight: FontWeight.bold)),
                       );
                     },
                   ),
-                ),
-                const Divider(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("Grand Total:", style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text("Rs.${order['grandTotal']}", style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                Text("Paid: Rs.${order['paidAmount']}"),
-                Text("Remaining: Rs.${order['remainingAmount']}"),
-                if (order['remarks'] != null && order['remarks'].toString().isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text("Remarks: ${order['remarks']}"),
-                  ),
-              ],
+                  const Divider(),
+                  _buildDetailRow("Sub Total:", "Rs.${subTotal.toStringAsFixed(2)}"),
+                  if (orderDiscount > 0)
+                    _buildDetailRow("Discount:", "- Rs.${orderDiscount.toStringAsFixed(2)}", color: Colors.red),
+                  _buildDetailRow("Grand Total:", "Rs.${order['grandTotal']}", isBold: true, color: Colors.blue),
+                  const Divider(),
+                  _buildDetailRow("Paid:", "Rs.${order['paidAmount']}"),
+                  _buildDetailRow("Remaining:", "Rs.${order['remainingAmount']}", 
+                      color: (order['remainingAmount'] as double) > 0 ? Colors.orange : Colors.green,
+                      isBold: true),
+                ],
+              ),
             ),
           ),
           actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _viewInvoice(order);
+              },
+              child: const Text("View Invoice"),
+            ),
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text("Close"),
@@ -97,36 +171,36 @@ class _OrderListScreenState extends State<OrderListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String title = widget.filterClient != null ? "Orders: ${widget.filterClient!.name}" : "All Orders";
+
     return Scaffold(
       body: Row(
         children: [
-          AppSidebar(
-            userId: widget.userId,
-            onRefresh: _loadOrders,
-            currentPage: "view_orders",
-          ),
+          if (widget.filterClient == null)
+            AppSidebar(
+              userId: widget.userId,
+              onRefresh: _loadOrders,
+              currentPage: "view_orders",
+            ),
           Expanded(
             child: Scaffold(
               appBar: AppBar(
-                title: const Text("All Orders"),
-                automaticallyImplyLeading: false,
+                title: Text(title),
+                automaticallyImplyLeading: widget.filterClient != null,
                 actions: [
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    onPressed: _loadOrders,
-                  ),
+                  IconButton(icon: const Icon(Icons.refresh), onPressed: _loadOrders),
                 ],
               ),
               body: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : orders.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.shopping_bag_outlined, size: 80, color: Colors.grey),
-                              SizedBox(height: 16),
-                              Text("No orders found", style: TextStyle(fontSize: 18, color: Colors.grey)),
+                              const Icon(Icons.shopping_bag_outlined, size: 80, color: Colors.grey),
+                              const SizedBox(height: 16),
+                              const Text("No orders found", style: TextStyle(fontSize: 18, color: Colors.grey)),
                             ],
                           ),
                         )
@@ -135,7 +209,6 @@ class _OrderListScreenState extends State<OrderListScreen> {
                           itemCount: orders.length,
                           itemBuilder: (context, index) {
                             final order = orders[index];
-                            final date = order['orderDate'];
                             final remaining = order['remainingAmount'] as double;
                             
                             return Card(
@@ -147,22 +220,16 @@ class _OrderListScreenState extends State<OrderListScreen> {
                                 title: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      order['orderNo'],
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                    ),
-                                    Text(
-                                      "Rs.${order['grandTotal']}",
-                                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
-                                    ),
+                                    Text(order['orderNo'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    Text("Rs.${order['grandTotal']}", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
                                   ],
                                 ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     const SizedBox(height: 4),
-                                    Text("Client: ${order['clientName']}"),
-                                    Text("Date: $date"),
+                                    if (widget.filterClient == null) Text("Client: ${order['clientName']}"),
+                                    Text("Date: ${order['orderDate']}"),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
@@ -181,9 +248,19 @@ class _OrderListScreenState extends State<OrderListScreen> {
                                             ),
                                           ),
                                         ),
-                                        TextButton(
-                                          onPressed: () => _viewOrderDetails(order),
-                                          child: const Text("View Details"),
+                                        Row(
+                                          children: [
+                                            TextButton.icon(
+                                              icon: const Icon(Icons.receipt_long, size: 16),
+                                              label: const Text("Invoice"),
+                                              onPressed: () => _viewInvoice(order),
+                                            ),
+                                            TextButton.icon(
+                                              icon: const Icon(Icons.info_outline, size: 16),
+                                              label: const Text("Details"),
+                                              onPressed: () => _viewOrderDetails(order),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),

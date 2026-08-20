@@ -5,6 +5,7 @@ import '../widgets/app_sidebar.dart';
 import 'client_form_screen.dart';
 import 'payment_form_screen.dart';
 import 'payment_history_screen.dart';
+import 'order_list_screen.dart';
 
 class ClientListScreen extends StatefulWidget {
   final int userId;
@@ -157,6 +158,18 @@ class _ClientListScreenState extends State<ClientListScreen> {
                   },
                 ),
                 _actionButton(
+                  label: "Orders",
+                  color: Colors.indigo,
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => OrderListScreen(userId: widget.userId, filterClient: client),
+                      ),
+                    );
+                  },
+                ),
+                _actionButton(
                   label: "History",
                   color: Colors.amber[700]!,
                   onPressed: () async {
@@ -235,7 +248,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
             ),
             child: Text(
               label,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
           ),
         ),

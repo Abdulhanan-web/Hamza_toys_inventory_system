@@ -6,6 +6,7 @@ import '../models/product.dart';
 import '../models/order.dart';
 import '../models/order_item.dart';
 import '../widgets/app_sidebar.dart';
+import 'invoice_screen.dart';
 
 class OrderFormScreen extends StatefulWidget {
   final int userId;
@@ -212,28 +213,48 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
 
     try {
       final orderNo = "ORD-${DateTime.now().millisecondsSinceEpoch}";
-      final currentOrderTotal = grandTotal - discount;
+      final currentOrderGrandTotal = grandTotal - discount;
+      final previousBalance = selectedClient!.balance;
       
       final order = Order(
         userId: widget.userId,
         orderNo: orderNo,
         clientId: selectedClient!.id!,
         orderDate: DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now()),
-        grandTotal: currentOrderTotal,
+        totalAmount: grandTotal,
+        discount: discount,
+        grandTotal: currentOrderGrandTotal,
+        previousBalance: previousBalance,
         paidAmount: 0,
-        remainingAmount: currentOrderTotal, // Fix: Only store this order's balance
+        remainingAmount: currentOrderGrandTotal,
         status: "Pending",
         remarks: _remarksController.text,
       );
 
-      // insertCompleteOrder increments the client balance by order.grandTotal
+      final clientForInvoice = selectedClient!;
+      final itemsForInvoice = List<OrderItem>.from(orderItems);
+      final productsForInvoice = List<Product>.from(products);
+
       await DatabaseHelper.instance.insertCompleteOrder(order, orderItems);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(backgroundColor: Colors.green, content: Text("Order saved successfully!")),
         );
-        Navigator.pop(context, true);
+        
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => InvoiceScreen(
+              order: order,
+              client: clientForInvoice,
+              items: itemsForInvoice,
+              products: productsForInvoice,
+              previousBalance: previousBalance,
+              discount: discount,
+            ),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {

@@ -8,7 +8,7 @@ import '../models/client.dart';
 import '../models/order.dart';
 import '../models/order_item.dart';
 import '../models/payment.dart';
-import '../models/batch.dart'; // This file now contains ProductBatch
+import '../models/batch.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -30,7 +30,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 6,
+      version: 8,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
@@ -67,12 +67,9 @@ class DatabaseHelper {
       ''');
     }
     if (oldVersion < 6) {
-      // Add costPrice to order_items for accurate profit tracking
       try {
         await db.execute("ALTER TABLE order_items ADD COLUMN costPrice REAL DEFAULT 0");
-      } catch (e) {
-        // Column might already exist
-      }
+      } catch (e) {}
       
       await db.execute('''
         CREATE TABLE IF NOT EXISTS batches(
@@ -86,7 +83,6 @@ class DatabaseHelper {
         )
       ''');
 
-      // Migrate existing products to initial batches if batches table is empty
       final batchCount = Sqflite.firstIntValue(await db.rawQuery("SELECT COUNT(*) FROM batches")) ?? 0;
       if (batchCount == 0) {
         final products = await db.query('products');
@@ -103,6 +99,18 @@ class DatabaseHelper {
           }
         }
       }
+    }
+    if (oldVersion < 7) {
+      try {
+        await db.execute("ALTER TABLE orders ADD COLUMN totalAmount REAL DEFAULT 0");
+        await db.execute("ALTER TABLE orders ADD COLUMN discount REAL DEFAULT 0");
+        await db.execute("UPDATE orders SET totalAmount = grandTotal");
+      } catch (e) {}
+    }
+    if (oldVersion < 8) {
+      try {
+        await db.execute("ALTER TABLE orders ADD COLUMN previousBalance REAL DEFAULT 0");
+      } catch (e) {}
     }
   }
 
@@ -150,7 +158,10 @@ class DatabaseHelper {
         orderNo TEXT UNIQUE,
         clientId INTEGER,
         orderDate TEXT,
+        totalAmount REAL,
+        discount REAL,
         grandTotal REAL,
+        previousBalance REAL,
         paidAmount REAL,
         remainingAmount REAL,
         status TEXT,
@@ -315,19 +326,15 @@ class DatabaseHelper {
   Future<void> insertPayment(Payment payment) async {
     final db = await database;
     await db.transaction((txn) async {
-      // 1. Record the payment
       await txn.insert("payments", payment.toMap());
 
-      // 2. Reduce the overall client balance
       await txn.rawUpdate(
         "UPDATE clients SET balance = balance - ? WHERE id = ?",
         [payment.amount, payment.clientId],
       );
 
-      // 3. Distribute payment across pending orders (FIFO)
       double remainingPayment = payment.amount;
 
-      // Get orders for this client that are not fully paid, oldest first (using id as primary sort for FIFO)
       final List<Map<String, dynamic>> pendingOrders = await txn.rawQuery(
         "SELECT * FROM orders WHERE clientId = ? AND remainingAmount > 0 ORDER BY id ASC",
         [payment.clientId],
@@ -452,7 +459,6 @@ class DatabaseHelper {
         int piecesRemainingToDeduct = (item.boxes * item.quantityPerBox) + item.loosePieces;
         double totalCostForSoldItem = 0.0;
 
-        // Fetch batches for this product, FIFO
         final List<Map<String, dynamic>> batches = await txn.rawQuery(
           "SELECT * FROM batches WHERE productId = ? AND quantityRemaining > 0 ORDER BY purchaseDate ASC",
           [item.productId],
@@ -480,7 +486,6 @@ class DatabaseHelper {
 
         await txn.insert("order_items", item.copyWith(orderId: orderId, costPrice: totalCostForSoldItem).toMap());
 
-        // Deduct overall inventory
         int totalSold = (item.boxes * item.quantityPerBox) + item.loosePieces;
         await txn.rawUpdate('''
           UPDATE products 
@@ -489,7 +494,6 @@ class DatabaseHelper {
         ''', [totalSold, item.productId]);
       }
       
-      // Increment the client balance by the order's grand total
       await txn.rawUpdate('''
         UPDATE clients 
         SET balance = balance + ? 
@@ -512,7 +516,7 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getAllOrdersWithClients(int userId) async {
     final db = await database;
     return await db.rawQuery('''
-      SELECT o.*, c.name AS clientName, c.phone
+      SELECT o.*, c.name AS clientName, c.phone, c.address, c.balance AS currentClientBalance
       FROM orders o
       INNER JOIN clients c ON o.clientId = c.id
       WHERE o.userId = ?
@@ -585,7 +589,6 @@ class DatabaseHelper {
     return Sqflite.firstIntValue(result) ?? 0;
   }
 
-  // Batch management
   Future<void> addStock(int productId, int pieces, double purchasePrice, String date) async {
     final db = await database;
     await db.transaction((txn) async {
