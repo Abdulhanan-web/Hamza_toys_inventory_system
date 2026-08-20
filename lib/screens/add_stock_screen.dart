@@ -24,7 +24,16 @@ class _AddStockScreenState extends State<AddStockScreen> {
   void initState() {
     super.initState();
     _dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    _priceController.text = widget.product.purchasePrice.toString();
+    // Price controller is left empty to allow hintText to show as placeholder
+  }
+
+  @override
+  void dispose() {
+    _boxesController.dispose();
+    _piecesController.dispose();
+    _priceController.dispose();
+    _dateController.dispose();
+    super.dispose();
   }
 
   Future<void> _selectDate() async {
@@ -46,7 +55,9 @@ class _AddStockScreenState extends State<AddStockScreen> {
       int boxes = int.tryParse(_boxesController.text) ?? 0;
       int pieces = int.tryParse(_piecesController.text) ?? 0;
       int totalNewPieces = (boxes * widget.product.quantityPerBox) + pieces;
-      double newPrice = double.tryParse(_priceController.text) ?? 0.0;
+      
+      // Use existing purchase price if the field is left empty (placeholder logic)
+      double newPrice = double.tryParse(_priceController.text) ?? widget.product.purchasePrice;
       String date = _dateController.text;
 
       if (totalNewPieces <= 0) {
@@ -169,6 +180,7 @@ class _AddStockScreenState extends State<AddStockScreen> {
                                 controller: _priceController,
                                 decoration: InputDecoration(
                                   labelText: "New Purchase Price (per piece)",
+                                  hintText: "Rs. ${widget.product.purchasePrice.toStringAsFixed(2)}",
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -178,8 +190,10 @@ class _AddStockScreenState extends State<AddStockScreen> {
                                 ),
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                 validator: (value) {
-                                  if (value == null || value.isEmpty) return "Required";
-                                  if (double.tryParse(value) == null) return "Invalid price";
+                                  // Field is no longer required as it falls back to existing price
+                                  if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
+                                    return "Invalid price";
+                                  }
                                   return null;
                                 },
                               ),

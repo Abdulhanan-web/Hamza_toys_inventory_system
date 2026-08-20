@@ -10,6 +10,21 @@ void main() {
   runApp(const HamzaToysApp());
 }
 
+class NoAnimationPageTransitionsBuilder extends PageTransitionsBuilder {
+  const NoAnimationPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return child;
+  }
+}
+
 class HamzaToysApp extends StatelessWidget {
   const HamzaToysApp({super.key});
 
@@ -23,6 +38,14 @@ class HamzaToysApp extends StatelessWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.indigo,
+        ),
+
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.windows: NoAnimationPageTransitionsBuilder(),
+          },
         ),
 
         appBarTheme: const AppBarTheme(

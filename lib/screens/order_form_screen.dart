@@ -410,7 +410,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                                   selectedProduct = val;
                                   if (val != null && _editingIndex == null) {
                                     _qpbController.text = val.quantityPerBox.toString();
-                                    _sellingPriceController.text = val.purchasePrice.toString();
+                                    _sellingPriceController.clear();
                                   }
                                 });
                               },
@@ -454,7 +454,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                                     label: "Selling Price",
                                     controller: _sellingPriceController,
                                     keyboardType: TextInputType.number,
-                                    hintText: selectedProduct != null ? "Price: ${selectedProduct!.purchasePrice}" : "0.0",
+                                    hintText: selectedProduct != null ? "Rs. ${selectedProduct!.purchasePrice}" : "0.0",
                                   ),
                                 ),
                                 const SizedBox(width: 12),
