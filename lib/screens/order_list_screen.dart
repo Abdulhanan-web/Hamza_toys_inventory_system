@@ -176,17 +176,21 @@ class _OrderListScreenState extends State<OrderListScreen> {
     return Scaffold(
       body: Row(
         children: [
-          if (widget.filterClient == null)
-            AppSidebar(
-              userId: widget.userId,
-              onRefresh: _loadOrders,
-              currentPage: "view_orders",
-            ),
+          AppSidebar(
+            userId: widget.userId,
+            onRefresh: _loadOrders,
+            currentPage: widget.filterClient != null ? "clients" : "view_orders",
+          ),
           Expanded(
             child: Scaffold(
               appBar: AppBar(
                 title: Text(title),
-                automaticallyImplyLeading: widget.filterClient != null,
+                leading: widget.filterClient != null
+                    ? IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => Navigator.pop(context),
+                      )
+                    : null,
                 actions: [
                   IconButton(icon: const Icon(Icons.refresh), onPressed: _loadOrders),
                 ],
