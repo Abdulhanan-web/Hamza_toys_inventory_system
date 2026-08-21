@@ -180,17 +180,17 @@ class _AddStockScreenState extends State<AddStockScreen> {
                                 controller: _priceController,
                                 decoration: InputDecoration(
                                   labelText: "New Purchase Price (per piece)",
-                                  hintText: "Rs. ${widget.product.purchasePrice.toStringAsFixed(2)}",
+                                  hintText: widget.product.purchasePrice.toStringAsFixed(2),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   filled: true,
                                   fillColor: Colors.grey[50],
-                                  prefixIcon: const Icon(Icons.currency_rupee),
+                                  prefixText: "Rs. ",
+                                  prefixStyle: const TextStyle(color: Colors.black),
                                 ),
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                 validator: (value) {
-                                  // Field is no longer required as it falls back to existing price
                                   if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
                                     return "Invalid price";
                                   }
