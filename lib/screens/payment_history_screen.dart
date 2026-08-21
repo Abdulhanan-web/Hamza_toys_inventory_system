@@ -147,7 +147,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           AppSidebar(
             userId: widget.userId,
             onRefresh: _loadPayments,
-            currentPage: "payment_history",
+            currentPage: widget.client != null ? "clients" : "payment_history",
           ),
           Expanded(
             child: Scaffold(
@@ -155,7 +155,13 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                 title: Text(widget.client != null 
                     ? "Payment History - ${widget.client!.name}" 
                     : "All Payments History"),
-                automaticallyImplyLeading: false,
+                leading: widget.client != null
+                    ? IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => Navigator.pop(context),
+                      )
+                    : null,
+                automaticallyImplyLeading: widget.client != null,
                 actions: [
                   IconButton(
                     icon: const Icon(Icons.refresh),
@@ -236,7 +242,14 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                                     child: ListTile(
                                       leading: const CircleAvatar(
                                         backgroundColor: Colors.green,
-                                        child: Icon(Icons.currency_rupee, color: Colors.white, size: 20),
+                                        child: Text(
+                                          "Rs",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       ),
                                       title: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
