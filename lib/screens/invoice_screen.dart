@@ -5,6 +5,7 @@ import '../models/order_item.dart';
 import '../models/client.dart';
 import '../models/product.dart';
 import '../widgets/app_sidebar.dart';
+import 'home_screen.dart';
 
 class InvoiceScreen extends StatelessWidget {
   final Order order;
@@ -13,6 +14,7 @@ class InvoiceScreen extends StatelessWidget {
   final List<Product> products;
   final double previousBalance;
   final double discount;
+  final bool isFromOrderForm;
 
   const InvoiceScreen({
     super.key,
@@ -22,6 +24,7 @@ class InvoiceScreen extends StatelessWidget {
     required this.products,
     required this.previousBalance,
     required this.discount,
+    this.isFromOrderForm = false,
   });
 
   @override
@@ -51,7 +54,22 @@ class InvoiceScreen extends StatelessWidget {
                 elevation: 0,
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.blueGrey),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    if (isFromOrderForm) {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HomeScreen(
+                            userId: order.userId,
+                            username: "User",
+                          ),
+                        ),
+                        (route) => false,
+                      );
+                    } else {
+                      Navigator.pop(context);
+                    }
+                  },
                 ),
                 title: const Text("Invoice", style: TextStyle(color: Colors.blueGrey)),
                 actions: [

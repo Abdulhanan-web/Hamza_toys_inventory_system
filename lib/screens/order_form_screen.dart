@@ -252,6 +252,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
               products: productsForInvoice,
               previousBalance: previousBalance,
               discount: discount,
+              isFromOrderForm: true,
             ),
           ),
         );
