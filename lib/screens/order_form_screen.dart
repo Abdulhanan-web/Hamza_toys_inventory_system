@@ -357,7 +357,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                             _buildSectionTitle("Client Details"),
                             DropdownButtonFormField<Client>(
                               isExpanded: true,
-                              value: selectedClient,
+                              value: (selectedClient != null && clients.contains(selectedClient)) ? selectedClient : null,
                               items: clients.map((c) => DropdownMenuItem(value: c, child: Text(c.name))).toList(),
                               onChanged: (val) => setState(() => selectedClient = val),
                               decoration: InputDecoration(
@@ -403,7 +403,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                             _buildSectionTitle(_editingIndex == null ? "Select Product" : "Edit Order Item"),
                             DropdownButtonFormField<Product>(
                               isExpanded: true,
-                              value: selectedProduct,
+                              value: (selectedProduct != null && products.contains(selectedProduct)) ? selectedProduct : null,
                               items: products.map((p) => DropdownMenuItem(value: p, child: Text(p.name))).toList(),
                               onChanged: (val) {
                                 setState(() {
