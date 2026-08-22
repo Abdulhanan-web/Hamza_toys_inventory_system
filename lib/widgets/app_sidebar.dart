@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../database/database_helper.dart';
 import '../screens/home_screen.dart';
 import '../screens/product_form_screen.dart';
 import '../screens/client_list_screen.dart';
@@ -8,7 +9,7 @@ import '../screens/payment_history_screen.dart';
 import '../screens/reports_screen.dart';
 import '../screens/login_screen.dart';
 
-class AppSidebar extends StatelessWidget {
+class AppSidebar extends StatefulWidget {
   final int userId;
   final String? username;
   final VoidCallback? onRefresh;
@@ -21,6 +22,31 @@ class AppSidebar extends StatelessWidget {
     this.onRefresh,
     this.currentPage = "",
   });
+
+  @override
+  State<AppSidebar> createState() => _AppSidebarState();
+}
+
+class _AppSidebarState extends State<AppSidebar> {
+  String? _displayUsername;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayUsername = widget.username;
+    if (_displayUsername == null || _displayUsername == "User") {
+      _loadUsername();
+    }
+  }
+
+  Future<void> _loadUsername() async {
+    final name = await DatabaseHelper.instance.getUsername(widget.userId);
+    if (mounted && name != null) {
+      setState(() {
+        _displayUsername = name;
+      });
+    }
+  }
 
   Widget sidebarButton({
     required IconData icon,
@@ -68,6 +94,8 @@ class AppSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String currentName = _displayUsername ?? widget.username ?? "User";
+
     return Container(
       width: 240,
       color: Colors.blueGrey.shade900,
@@ -82,7 +110,7 @@ class AppSidebar extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             const Text(
-              "Inventory System",
+              "Hamza Toys",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 22,
@@ -96,17 +124,17 @@ class AppSidebar extends StatelessWidget {
             sidebarButton(
               icon: Icons.dashboard,
               title: "Dashboard",
-              isActive: currentPage == "dashboard",
+              isActive: widget.currentPage == "dashboard",
               onTap: () {
-                if (currentPage == "dashboard") {
-                  onRefresh?.call();
+                if (widget.currentPage == "dashboard") {
+                  widget.onRefresh?.call();
                 } else {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder: (_) => HomeScreen(
-                        userId: userId,
-                        username: username ?? "User",
+                        userId: widget.userId,
+                        username: currentName,
                       ),
                     ),
                   );
@@ -116,91 +144,91 @@ class AppSidebar extends StatelessWidget {
             sidebarButton(
               icon: Icons.add_box,
               title: "Add Product",
-              isActive: currentPage == "add_product",
+              isActive: widget.currentPage == "add_product",
               onTap: () async {
-                if (currentPage == "add_product") return;
+                if (widget.currentPage == "add_product") return;
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ProductFormScreen(userId: userId),
+                    builder: (_) => ProductFormScreen(userId: widget.userId),
                   ),
                 );
-                onRefresh?.call();
+                widget.onRefresh?.call();
               },
             ),
             sidebarButton(
               icon: Icons.people,
               title: "Clients",
-              isActive: currentPage == "clients",
+              isActive: widget.currentPage == "clients",
               onTap: () async {
-                if (currentPage == "clients") return;
+                if (widget.currentPage == "clients") return;
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ClientListScreen(userId: userId),
+                    builder: (_) => ClientListScreen(userId: widget.userId),
                   ),
                 );
-                onRefresh?.call();
+                widget.onRefresh?.call();
               },
             ),
             sidebarButton(
               icon: Icons.shopping_cart,
               title: "Add Order",
-              isActive: currentPage == "add_order",
+              isActive: widget.currentPage == "add_order",
               onTap: () async {
-                if (currentPage == "add_order") return;
+                if (widget.currentPage == "add_order") return;
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => OrderFormScreen(userId: userId),
+                    builder: (_) => OrderFormScreen(userId: widget.userId),
                   ),
                 );
-                onRefresh?.call();
+                widget.onRefresh?.call();
               },
             ),
             sidebarButton(
               icon: Icons.list_alt,
               title: "View Orders",
-              isActive: currentPage == "view_orders",
+              isActive: widget.currentPage == "view_orders",
               onTap: () async {
-                if (currentPage == "view_orders") return;
+                if (widget.currentPage == "view_orders") return;
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => OrderListScreen(userId: userId),
+                    builder: (_) => OrderListScreen(userId: widget.userId),
                   ),
                 );
-                onRefresh?.call();
+                widget.onRefresh?.call();
               },
             ),
             sidebarButton(
               icon: Icons.history,
               title: "Payment History",
-              isActive: currentPage == "payment_history",
+              isActive: widget.currentPage == "payment_history",
               onTap: () async {
-                if (currentPage == "payment_history") return;
+                if (widget.currentPage == "payment_history") return;
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => PaymentHistoryScreen(userId: userId),
+                    builder: (_) => PaymentHistoryScreen(userId: widget.userId),
                   ),
                 );
-                onRefresh?.call();
+                widget.onRefresh?.call();
               },
             ),
             sidebarButton(
               icon: Icons.bar_chart,
               title: "Reports",
-              isActive: currentPage == "reports",
+              isActive: widget.currentPage == "reports",
               onTap: () async {
-                if (currentPage == "reports") return;
+                if (widget.currentPage == "reports") return;
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ReportsScreen(userId: userId),
+                    builder: (_) => ReportsScreen(userId: widget.userId),
                   ),
                 );
-                onRefresh?.call();
+                widget.onRefresh?.call();
               },
             ),
             const Spacer(),

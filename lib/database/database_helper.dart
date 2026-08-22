@@ -230,6 +230,13 @@ class DatabaseHelper {
     return result.isNotEmpty;
   }
 
+  Future<String?> getUsername(int userId) async {
+    final db = await database;
+    final result = await db.query("users", columns: ["username"], where: "id=?", whereArgs: [userId]);
+    if (result.isEmpty) return null;
+    return result.first["username"] as String?;
+  }
+
   //======================== PRODUCTS ========================//
   Future<int> insertProduct(Product product) async {
     final db = await database;
@@ -477,7 +484,7 @@ class DatabaseHelper {
 
           await txn.rawUpdate(
             "UPDATE batches SET quantityRemaining = quantityRemaining - ? WHERE id = ?",
-            [deduction, batchId],
+            [batchId, deduction],
           );
 
           totalCostForSoldItem += deduction * purchasePrice;
